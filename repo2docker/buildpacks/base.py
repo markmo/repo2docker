@@ -186,6 +186,8 @@ RUN chmod +x "{{ start_script }}"
 ENV R2D_ENTRYPOINT "{{ start_script }}"
 {% endif -%}
 
+COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
+
 # Add entrypoint
 COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
 ENTRYPOINT ["/usr/local/bin/repo2docker-entrypoint"]

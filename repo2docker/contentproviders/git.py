@@ -1,5 +1,6 @@
 import subprocess
 import sys
+from datetime import datetime
 
 from .base import ContentProvider, ContentProviderException
 from ..utils import execute_cmd, check_ref
@@ -18,6 +19,10 @@ class Git(ContentProvider):
     def fetch(self, spec, output_dir, yield_output=False):
         repo = spec["repo"]
         ref = spec.get("ref", None)
+
+        # suffix = datetime.now().strftime('%Y%m%d%H%M%S')
+        # branch = 'europa-' + suffix
+        branch = 'europa'
 
         # make a, possibly shallow, clone of the remote repository
         try:
@@ -59,6 +64,14 @@ class Git(ContentProvider):
         # ensure that git submodules are initialised and updated
         for line in execute_cmd(
             ["git", "submodule", "update", "--init", "--recursive"],
+            cwd=output_dir,
+            capture=yield_output,
+        ):
+            yield line
+
+        # create branch for changes
+        for line in execute_cmd(
+            ["git", "checkout", "-b", branch],
             cwd=output_dir,
             capture=yield_output,
         ):

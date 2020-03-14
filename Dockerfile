@@ -16,7 +16,7 @@ RUN mkdir /tmp/wheelhouse \
 FROM alpine:${ALPINE_VERSION}
 
 # install python, git, bash
-RUN apk add --no-cache git git-lfs python3 bash
+RUN apk add --no-cache git git-lfs python3 bash openssh-client
 
 # install repo2docker
 COPY --from=0 /tmp/wheelhouse /tmp/wheelhouse
@@ -26,6 +26,14 @@ RUN pip3 install --no-cache-dir /tmp/wheelhouse/*.whl \
 # add git-credential helper
 COPY ./docker/git-credential-env /usr/local/bin/git-credential-env
 RUN git config --system credential.helper env
+
+ARG SSH_PRIVATE_KEY
+RUN mkdir /root/.ssh
+RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa
+RUN chmod 400 /root/.ssh/id_rsa
+
+RUN touch /root/.ssh/known_hosts
+RUN ssh-keyscan bitbucket.org >> /root/.ssh/known_hosts
 
 # Used for testing purpose in ports.py
 EXPOSE 52000
