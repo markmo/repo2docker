@@ -1,6 +1,5 @@
 import subprocess
 import sys
-from datetime import datetime
 
 from .base import ContentProvider, ContentProviderException
 from ..utils import execute_cmd, check_ref
@@ -19,10 +18,7 @@ class Git(ContentProvider):
     def fetch(self, spec, output_dir, yield_output=False):
         repo = spec["repo"]
         ref = spec.get("ref", None)
-
-        # suffix = datetime.now().strftime('%Y%m%d%H%M%S')
-        # branch = 'europa-' + suffix
-        branch = 'europa'
+        branch = spec["branch"]
 
         # make a, possibly shallow, clone of the remote repository
         try:

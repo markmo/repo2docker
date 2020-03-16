@@ -22,6 +22,7 @@ from docker.utils import kwargs_from_env
 from docker.errors import DockerException
 import escapism
 from pythonjsonlogger import jsonlogger
+from datetime import datetime
 
 from traitlets import Any, Dict, Int, List, Unicode, Bool, default
 from traitlets.config import Application
@@ -394,6 +395,11 @@ class Repo2Docker(Application):
                 "No matching content provider found for " "{url}.".format(url=url)
             )
 
+        if isinstance(picked_content_provider, contentproviders.Git):
+            suffix = datetime.now().strftime("%Y%m%d%H%M%S")
+            self.branch = "europa-" + suffix
+            spec["branch"] = self.branch
+
         for log_line in picked_content_provider.fetch(
             spec, checkout_path, yield_output=self.json_logs
         ):
@@ -708,6 +714,10 @@ class Repo2Docker(Application):
                     }
                     if self.target_repo_dir:
                         build_args["REPO_DIR"] = self.target_repo_dir
+                    
+                    if self.branch:
+                        build_args["BRANCH"] = self.branch
+
                     self.log.info(
                         "Using %s builder\n",
                         bp.__class__.__name__,

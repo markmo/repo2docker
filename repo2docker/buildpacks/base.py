@@ -186,7 +186,24 @@ RUN chmod +x "{{ start_script }}"
 ENV R2D_ENTRYPOINT "{{ start_script }}"
 {% endif -%}
 
+# Append ignore files
+{% if ignore_files -%}
+{% for item in ignore_files -%}
+RUN echo "{{item}}" >> .gitignore
+{% endfor -%}
+{% endif -%}
+
+# Add Jupyter Notebook config
 COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
+
+COPY /merge_to_master.sh /home/$NB_USER/merge_to_master.sh
+RUN chmod +x /home/$NB_USER/merge_to_master.sh
+
+RUN git config --global user.email "jovyan@europa.com"
+RUN git config --global user.name "europa"
+
+ARG GIT_BRANCH=${BRANCH}
+ENV GIT_BRANCH ${GIT_BRANCH}
 
 # Add entrypoint
 COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
@@ -203,6 +220,14 @@ CMD ["jupyter", "notebook", "--ip", "0.0.0.0"]
 
 ENTRYPOINT_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "repo2docker-entrypoint"
+)
+
+NOTEBOOK_CONFIG_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "jupyter_notebook_config.py"
+)
+
+PRE_STOP_SCRIPT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "merge_to_master.sh"
 )
 
 
@@ -286,6 +311,9 @@ class BuildPack:
 
         These variables will not be available to build.
         """
+        return []
+
+    def get_ignore_files(self):
         return []
 
     def get_path(self):
@@ -571,6 +599,7 @@ class BuildPack:
             post_build_scripts=self.get_post_build_scripts(),
             start_script=self.get_start_script(),
             appendix=self.appendix,
+            ignore_files=self.get_ignore_files(),
         )
 
     @staticmethod
@@ -635,6 +664,8 @@ class BuildPack:
             tar.add(src_path, dest_path, filter=_filter_tar)
 
         tar.add(ENTRYPOINT_FILE, "repo2docker-entrypoint", filter=_filter_tar)
+        tar.add(NOTEBOOK_CONFIG_FILE, "jupyter_notebook_config.py", filter=_filter_tar)
+        tar.add(PRE_STOP_SCRIPT, "merge_to_master.sh", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
 
@@ -675,6 +706,7 @@ class BuildPack:
 
 
 class BaseImage(BuildPack):
+
     def get_build_env(self):
         """Return env directives required for build"""
         return [
@@ -724,6 +756,19 @@ class BaseImage(BuildPack):
                 ]
             )
         return env
+
+    def get_ignore_files(self):
+        ignore_files = [
+            '.bash_logout',
+            '.bashrc',
+            '.config/',
+            '.ipython/',
+            '.jupyter/',
+            '.local/',
+            '.profile',
+            '.gitconfig',
+        ]
+        return ignore_files
 
     def detect(self):
         return True

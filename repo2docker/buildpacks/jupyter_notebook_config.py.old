@@ -1,12 +1,12 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from functools import partial
 from jupyter_core.paths import jupyter_data_dir
 import subprocess
 import os
 import errno
 import stat
-import sys
 
 c = get_config()
 c.NotebookApp.ip = '0.0.0.0'
@@ -23,44 +23,81 @@ c.NotebookApp.tornado_settings = {
   }
 }
 
+def execute_cmd(cmd, capture=False, **kwargs):
+    """
+    Call given command, yielding output line by line if capture=True.
+
+    Must be yielded from.
+    """
+    if capture:
+        kwargs["stdout"] = subprocess.PIPE
+        kwargs["stderr"] = subprocess.STDOUT
+
+    proc = subprocess.Popen(cmd, **kwargs)
+
+    if not capture:
+        # not capturing output, let subprocesses talk directly to terminal
+        ret = proc.wait()
+        if ret != 0:
+            raise subprocess.CalledProcessError(ret, cmd)
+        return
+
+    # Capture output for logging.
+    # Each line will be yielded as text.
+    # This should behave the same as .readline(), but splits on `\r` OR `\n`,
+    # not just `\n`.
+    buf = []
+
+    def flush():
+        """Flush next line of the buffer"""
+        line = b"".join(buf).decode("utf8", "replace")
+        buf[:] = []
+        return line
+
+    c_last = ""
+    try:
+        for c in iter(partial(proc.stdout.read, 1), b""):
+            if c_last == b"\r" and buf and c != b"\n":
+                yield flush()
+            buf.append(c)
+            if c == b"\n":
+                yield flush()
+            c_last = c
+        if buf:
+            yield flush()
+    finally:
+        ret = proc.wait()
+        if ret != 0:
+            raise subprocess.CalledProcessError(ret, cmd)
+
 def commit_changes(model, os_path, contents_manager, **kwargs):
-    # while popen is a non-blocking function (meaning you can continue 
-    # the execution of the program without waiting the call to finish),
-    # check_call is blocking
     log = contents_manager.log
     workdir, filename = os.path.split(os_path)
-    branch = os.getenv("GIT_BRANCH")
+    yield_output = True
     try:
-        # Note Do not use stdout=PIPE or stderr=PIPE with this function 
-        # as that can deadlock based on the child process output volume. 
-        # Use Popen with the communicate() method when you need pipes.
-        sys.stdout.write('git add\n')
-        subprocess.check_call(
+        log.info('git add')
+        for line in execute_cmd(
             ["git", "add", filename],
             cwd=workdir,
-            stdout=sys.stdout
-        )
+            capture=yield_output,
+        ):
+            log.info(line)
 
-        sys.stdout.write('git commit\n')
-        subprocess.check_call(
+        log.info('git commit')
+        for line in execute_cmd(
             ["git", "commit", "-m", "updates from europa"],
             cwd=workdir,
-            stdout=sys.stdout
-        )
+            capture=yield_output,
+        ):
+            log.info(line)
 
-        # sys.stdout.write('git pull\n')
-        # subprocess.check_call(
-        #     ["git", "pull", "origin", branch],
-        #     cwd=workdir,
-        #     stdout=sys.stdout
-        # )
-
-        sys.stdout.write('git push\n')
-        subprocess.check_call(
-            ["git", "push", "origin", branch],
+        log.info('git push')
+        for line in execute_cmd(
+            ["git", "push", "origin", "europa"],
             cwd=workdir,
-            stdout=sys.stdout
-        )
+            capture=yield_output,
+        ):
+            log.info(line)
 
     except Exception as e:
         log.error(e)
