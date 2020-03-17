@@ -197,7 +197,6 @@ RUN echo "{{item}}" >> .gitignore
 COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
 
 COPY /merge_to_master.sh /home/$NB_USER/merge_to_master.sh
-RUN chmod +x /home/$NB_USER/merge_to_master.sh
 
 RUN git config --global user.email "jovyan@europa.com"
 RUN git config --global user.name "europa"
