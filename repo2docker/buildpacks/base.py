@@ -201,7 +201,7 @@ COPY /merge_to_master.sh /home/$NB_USER/merge_to_master.sh
 RUN git config --global user.email "jovyan@europa.com"
 RUN git config --global user.name "europa"
 
-ARG GIT_BRANCH=${BRANCH}
+ARG GIT_BRANCH
 ENV GIT_BRANCH ${GIT_BRANCH}
 
 # Add entrypoint

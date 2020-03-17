@@ -716,7 +716,7 @@ class Repo2Docker(Application):
                         build_args["REPO_DIR"] = self.target_repo_dir
                     
                     if self.branch:
-                        build_args["BRANCH"] = self.branch
+                        build_args["GIT_BRANCH"] = self.branch
 
                     self.log.info(
                         "Using %s builder\n",
