@@ -197,6 +197,7 @@ RUN echo "{{item}}" >> .gitignore
 COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
 
 COPY /merge_to_master.sh /home/$NB_USER/merge_to_master.sh
+COPY /fetch.sh /home/$NB_USER/fetch.sh
 
 RUN git config --global user.email "jovyan@europa.com"
 RUN git config --global user.name "europa"
@@ -227,6 +228,10 @@ NOTEBOOK_CONFIG_FILE = os.path.join(
 
 PRE_STOP_SCRIPT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "merge_to_master.sh"
+)
+
+POST_START_SCRIPT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "fetch.sh"
 )
 
 
@@ -665,6 +670,7 @@ class BuildPack:
         tar.add(ENTRYPOINT_FILE, "repo2docker-entrypoint", filter=_filter_tar)
         tar.add(NOTEBOOK_CONFIG_FILE, "jupyter_notebook_config.py", filter=_filter_tar)
         tar.add(PRE_STOP_SCRIPT, "merge_to_master.sh", filter=_filter_tar)
+        tar.add(POST_START_SCRIPT, "fetch.sh", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
 
