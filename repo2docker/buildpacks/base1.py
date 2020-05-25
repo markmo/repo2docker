@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 from traitlets import Dict
 
 TEMPLATE = r"""
-FROM buildpack-deps:bionic
+FROM theiaide/theia
 
 # avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -193,12 +193,6 @@ RUN echo "{{item}}" >> .gitignore
 {% endfor -%}
 {% endif -%}
 
-# Add Jupyter Notebook config
-COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
-
-COPY /merge_to_master.sh /home/$NB_USER/merge_to_master.sh
-COPY /fetch.sh /home/$NB_USER/fetch.sh
-
 RUN git config --global user.email "jovyan@europa.com"
 RUN git config --global user.name "europa"
 
@@ -209,18 +203,7 @@ ENV GIT_BRANCH ${GIT_BRANCH}
 COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
 ENTRYPOINT ["/usr/local/bin/repo2docker-entrypoint"]
 
-# Install Theia
-RUN npm install -g yarn
-
-COPY /package.json /home/$NB_USER/package.json
-
-RUN yarn
-RUN yarn theia build
-
-RUN yarn start . --hostname 0.0.0.0 --port 8080 &
-
-# Specify the default command to run
-CMD ["jupyter", "notebook", "--ip", "0.0.0.0"]
+CMD ["yarn", "start", ".", "--hostname", "0.0.0.0", "--port", "8888"]
 
 {% if appendix -%}
 # Appendix:
@@ -230,18 +213,6 @@ CMD ["jupyter", "notebook", "--ip", "0.0.0.0"]
 
 ENTRYPOINT_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "repo2docker-entrypoint"
-)
-
-NOTEBOOK_CONFIG_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "jupyter_notebook_config.py"
-)
-
-PRE_STOP_SCRIPT = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "merge_to_master.sh"
-)
-
-POST_START_SCRIPT = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "fetch.sh"
 )
 
 PACKAGE_JSON = os.path.join(
@@ -682,9 +653,6 @@ class BuildPack:
             tar.add(src_path, dest_path, filter=_filter_tar)
 
         tar.add(ENTRYPOINT_FILE, "repo2docker-entrypoint", filter=_filter_tar)
-        tar.add(NOTEBOOK_CONFIG_FILE, "jupyter_notebook_config.py", filter=_filter_tar)
-        tar.add(PRE_STOP_SCRIPT, "merge_to_master.sh", filter=_filter_tar)
-        tar.add(POST_START_SCRIPT, "fetch.sh", filter=_filter_tar)
         tar.add(PACKAGE_JSON, "package.json", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
