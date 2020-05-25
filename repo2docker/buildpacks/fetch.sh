@@ -7,3 +7,4 @@ else
     git pull origin master
     git merge master
 fi
+echo "Post-start script executed successfully" > poststart.log

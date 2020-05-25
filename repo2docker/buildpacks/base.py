@@ -209,6 +209,16 @@ ENV GIT_BRANCH ${GIT_BRANCH}
 COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
 ENTRYPOINT ["/usr/local/bin/repo2docker-entrypoint"]
 
+# Install Theia
+RUN npm install -g yarn
+
+COPY /package.json /home/$NB_USER/package.json
+
+RUN yarn
+RUN yarn theia build
+
+RUN yarn start . --hostname 0.0.0.0 --port 8080 &
+
 # Specify the default command to run
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0"]
 
