@@ -206,8 +206,8 @@ ARG GIT_BRANCH
 ENV GIT_BRANCH ${GIT_BRANCH}
 
 # Add entrypoint
-COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
-ENTRYPOINT ["/usr/local/bin/repo2docker-entrypoint"]
+# COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
+# ENTRYPOINT ["/usr/local/bin/repo2docker-entrypoint"]
 
 # Install Theia
 RUN npm install -g yarn
