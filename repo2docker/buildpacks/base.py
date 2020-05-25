@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 from traitlets import Dict
 
 TEMPLATE = r"""
-FROM theiaide:theia
+FROM theiaide/theia
 
 # avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
