@@ -244,6 +244,10 @@ POST_START_SCRIPT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "fetch.sh"
 )
 
+PACKAGE_JSON = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "package.json"
+)
+
 
 class BuildPack:
     """
@@ -681,6 +685,7 @@ class BuildPack:
         tar.add(NOTEBOOK_CONFIG_FILE, "jupyter_notebook_config.py", filter=_filter_tar)
         tar.add(PRE_STOP_SCRIPT, "merge_to_master.sh", filter=_filter_tar)
         tar.add(POST_START_SCRIPT, "fetch.sh", filter=_filter_tar)
+        tar.add(PACKAGE_JSON, "package.json", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
 
