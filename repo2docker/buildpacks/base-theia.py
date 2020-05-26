@@ -206,11 +206,21 @@ ARG GIT_BRANCH
 ENV GIT_BRANCH ${GIT_BRANCH}
 
 # Add entrypoint
-COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
-ENTRYPOINT ["/usr/local/bin/repo2docker-entrypoint"]
+# COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
+# ENTRYPOINT ["/usr/local/bin/repo2docker-entrypoint"]
+
+# Install Theia
+RUN npm install -g yarn
+
+COPY /package.json /home/$NB_USER/package.json
+
+RUN yarn
+RUN yarn theia build
+
+CMD ["yarn", "start", ".", "--hostname", "0.0.0.0", "--port", "8888"]
 
 # Specify the default command to run
-CMD ["jupyter", "notebook", "--ip", "0.0.0.0"]
+# CMD ["jupyter", "notebook", "--ip", "0.0.0.0"]
 
 {% if appendix -%}
 # Appendix:
@@ -232,6 +242,10 @@ PRE_STOP_SCRIPT = os.path.join(
 
 POST_START_SCRIPT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "fetch.sh"
+)
+
+PACKAGE_JSON = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "package.json"
 )
 
 
@@ -671,6 +685,7 @@ class BuildPack:
         tar.add(NOTEBOOK_CONFIG_FILE, "jupyter_notebook_config.py", filter=_filter_tar)
         tar.add(PRE_STOP_SCRIPT, "merge_to_master.sh", filter=_filter_tar)
         tar.add(POST_START_SCRIPT, "fetch.sh", filter=_filter_tar)
+        tar.add(PACKAGE_JSON, "package.json", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
 
