@@ -395,10 +395,15 @@ class Repo2Docker(Application):
                 "No matching content provider found for " "{url}.".format(url=url)
             )
 
-        if isinstance(picked_content_provider, contentproviders.Git):
-            suffix = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.branch = "europa-" + suffix
-            spec["branch"] = self.branch
+        # I want to use a branch name accessible to the Europa app to display
+        # the current branch contents. An option is to use the hash part of
+        # the JupyterHub User but this is not known until after the repo2docker
+        # image is created.
+        # if isinstance(picked_content_provider, contentproviders.Git):
+        #     suffix = datetime.now().strftime("%Y%m%d%H%M%S")
+        #     self.branch = "europa-" + suffix
+        #     spec["branch"] = self.branch
+        self.branch = ref
 
         for log_line in picked_content_provider.fetch(
             spec, checkout_path, yield_output=self.json_logs

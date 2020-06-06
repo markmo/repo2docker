@@ -29,7 +29,8 @@ def commit_changes(model, os_path, contents_manager, **kwargs):
     # check_call is blocking
     log = contents_manager.log
     workdir, filename = os.path.split(os_path)
-    branch = os.getenv("GIT_BRANCH")
+    jupyterhub_user = os.getenv("JUPYTERHUB_USER")
+    branch = 'europa-' + jupyterhub_user.split('-')[-1]
     try:
         # Note Do not use stdout=PIPE or stderr=PIPE with this function 
         # as that can deadlock based on the child process output volume. 

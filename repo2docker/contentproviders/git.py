@@ -18,7 +18,7 @@ class Git(ContentProvider):
     def fetch(self, spec, output_dir, yield_output=False):
         repo = spec["repo"]
         ref = spec.get("ref", None)
-        branch = spec["branch"]
+        branch = spec.get("branch", None)
 
         # make a, possibly shallow, clone of the remote repository
         try:
@@ -49,6 +49,7 @@ class Git(ContentProvider):
                     "Failed to check out ref %s", ref, extra=dict(phase="failed")
                 )
                 raise ValueError("Failed to check out ref {}".format(ref))
+
             # We don't need to explicitly checkout things as the reset will
             # take of that. If the hash is resolved above, we should be
             # able to reset to it
@@ -66,12 +67,13 @@ class Git(ContentProvider):
             yield line
 
         # create branch for changes
-        for line in execute_cmd(
-            ["git", "checkout", "-b", branch],
-            cwd=output_dir,
-            capture=yield_output,
-        ):
-            yield line
+        if branch:
+            for line in execute_cmd(
+                ["git", "checkout", "-b", branch],
+                cwd=output_dir,
+                capture=yield_output,
+            ):
+                yield line
 
         cmd = ["git", "rev-parse", "HEAD"]
         sha1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=output_dir)
