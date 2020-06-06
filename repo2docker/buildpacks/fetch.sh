@@ -19,5 +19,7 @@ else
     # `GIT_BRANCH` is the original branch
     git pull origin "${GIT_BRANCH}"
     git merge "${GIT_BRANCH}"
+    # so the repo listing in the front-end can be replaced
+    git push origin "${branch}"
 fi
 echo "Post-start script executed successfully" > poststart.log
