@@ -108,6 +108,14 @@ COPY {{ src }} {{ dst }}
 {{sd}}
 {% endfor %}
 
+# Install Theia
+RUN npm install -g yarn
+
+COPY /package.json /home/$NB_USER/package.json
+
+RUN yarn
+RUN yarn theia build
+
 # Allow target path repo is cloned to be configurable
 ARG REPO_DIR=${HOME}
 ENV REPO_DIR ${REPO_DIR}
