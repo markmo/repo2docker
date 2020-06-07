@@ -108,14 +108,6 @@ COPY {{ src }} {{ dst }}
 {{sd}}
 {% endfor %}
 
-# Install Theia
-RUN npm install -g yarn
-
-COPY /package.json /home/$NB_USER/package.json
-
-RUN yarn
-RUN yarn theia build
-
 # Allow target path repo is cloned to be configurable
 ARG REPO_DIR=${HOME}
 ENV REPO_DIR ${REPO_DIR}
@@ -207,8 +199,18 @@ COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config
 COPY /merge_to_master.sh /home/$NB_USER/merge_to_master.sh
 COPY /fetch.sh /home/$NB_USER/fetch.sh
 
-RUN git config --global user.email "jovyan@europa.com"
-RUN git config --global user.name "europa"
+# Install Theia
+RUN npm install -g yarn
+
+COPY /package.json /home/$NB_USER/package.json
+
+WORKDIR /home/$NB_USER
+RUN yarn
+RUN yarn theia build
+WORKDIR ${REPO_DIR}
+
+RUN git config --global user.email "jovyan@europanb.com"
+RUN git config --global user.name "europanb"
 
 ARG GIT_BRANCH
 ENV GIT_BRANCH ${GIT_BRANCH}
