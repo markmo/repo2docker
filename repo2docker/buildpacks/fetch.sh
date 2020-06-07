@@ -5,6 +5,11 @@
 # [`appendix`](https://binderhub.readthedocs.io/en/latest/reference/app.html?highlight=c.BinderHub.appendix%20#binderhub.app.BinderHub) 
 # feature of BinderHub. 
 
+cd "${REPO_DIR}"
+
+# update oauth token
+git remote set-url origin "${BINDER_REPO_URL}"
+
 jupyterhub_user="${JUPYTERHUB_USER}"
 
 # see https://stackoverflow.com/questions/3162385/how-to-split-a-string-in-shell-and-get-the-last-field
