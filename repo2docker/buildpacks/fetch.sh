@@ -27,4 +27,4 @@ else
     # so the repo listing in the front-end can be replaced
     git push origin "${branch}"
 fi
-echo "Post-start script executed successfully" > poststart.log
+echo "Post-start script executed successfully" > "${HOME}"/poststart.log

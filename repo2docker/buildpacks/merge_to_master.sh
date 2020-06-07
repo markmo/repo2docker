@@ -11,4 +11,4 @@ git checkout "${GIT_BRANCH}"
 # Merge the temporary branch
 git merge "${branch}"
 git push origin "${GIT_BRANCH}"
-echo "Pre-stop script executed successfully" > prestop.log
+echo "Pre-stop script executed successfully" > "${HOME}"/prestop.log
