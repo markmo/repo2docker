@@ -28,3 +28,4 @@ else
     git push origin "${branch}"
 fi
 echo "Post-start script executed successfully" > "${HOME}"/poststart.log
+echo 0

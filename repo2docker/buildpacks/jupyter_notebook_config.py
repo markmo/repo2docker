@@ -15,12 +15,19 @@ c.NotebookApp.allow_origin = '*'
 # Cache-Control - prevent https://github.com/nteract/nteract/issues/3850
 c.NotebookApp.tornado_settings = {
   'headers': {
-    'Content-Security-Policy': "frame-ancestors 'self' https://*.atlassian.net https://*.ngrok.io https://*.europanb.net https://*.europanb.online http://localhost:5000 http://192.168.99.100:32574",
+    'Content-Security-Policy': "frame-ancestors 'self' https://*.atlassian.net https://*.ngrok.io https://*.europanb.net https://*.europanb.online https://*.devsheds.io http://localhost:5000 http://192.168.99.100:32574",
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrftoken, ETag',
     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
     'Cache-Control': 'no-cache'
   }
+}
+
+c.ServerProxy.servers = {
+    'theia': {
+        'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
+        'port': '8080'
+    }
 }
 
 def commit_changes(model, os_path, contents_manager, **kwargs):

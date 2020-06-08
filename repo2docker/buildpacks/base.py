@@ -206,8 +206,10 @@ COPY /package.json /home/$NB_USER/package.json
 
 WORKDIR /home/$NB_USER
 # Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
-RUN yarn
+RUN yarn install --network-timeout 100000
 RUN yarn theia build
+ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
+RUN pip install jupyter-server-proxy
 WORKDIR ${REPO_DIR}
 
 RUN git config --global user.email "jovyan@europanb.com"
