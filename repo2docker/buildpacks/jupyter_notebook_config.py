@@ -26,7 +26,7 @@ c.NotebookApp.tornado_settings = {
 c.ServerProxy.servers = {
     'theia': {
         'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
-        'port': '8080'
+        'port': 8080
     }
 }
 
