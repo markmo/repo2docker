@@ -83,6 +83,14 @@ RUN apt-get -qq update && \
     rm -rf /var/lib/apt/lists/*
 {% endif -%}
 
+# tool to watch for file changes
+RUN apt-get -qq update && \
+    apt-get -qq install --yes inotify-tools \
+    > /dev/null && \
+    apt-get -qq purge && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8888
 
 {% if build_env -%}
@@ -196,8 +204,10 @@ RUN echo "{{item}}" >> .gitignore
 # Add Jupyter Notebook config
 COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
 
-COPY /merge_to_master.sh /home/$NB_USER/merge_to_master.sh
+# Add scripts
+COPY /autocommit.sh /home/$NB_USER/autocommit.sh
 COPY /fetch.sh /home/$NB_USER/fetch.sh
+COPY /merge.sh /home/$NB_USER/merge.sh
 
 # Install Theia
 RUN npm install -g yarn
@@ -211,6 +221,27 @@ RUN yarn theia build
 ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
 RUN pip install jupyter-server-proxy
 WORKDIR ${REPO_DIR}
+
+# Install Europa
+COPY /europa/ /home/$NB_USER/europa/
+
+# Install GCloud
+RUN mkdir $HOME/gcloud && \
+    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C $HOME/gcloud && \
+    $HOME/gcloud/google-cloud-sdk/install.sh --quiet && \
+    echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$PATH' >> $BASH_ENV
+
+# Install Garden
+RUN apt-get -qq update && \
+    apt-get -qq install --yes --no-install-recommends git rsync curl > /dev/null && \
+    apt-get -qq purge && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -sL https://get.garden.io/install.sh | bash
+
+COPY /kubeconfig.yml /home/$NB_USER/.kube/config
+COPY /garden.yml /home/$NB_USER/garden.yml
 
 RUN git config --global user.email "jovyan@europanb.com"
 RUN git config --global user.name "europanb"
@@ -239,16 +270,30 @@ NOTEBOOK_CONFIG_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "jupyter_notebook_config.py"
 )
 
-PRE_STOP_SCRIPT = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "merge_to_master.sh"
+PACKAGE_JSON = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "package.json"
+)
+
+AUTOCOMMIT_SCRIPT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "autocommit.sh"
 )
 
 POST_START_SCRIPT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "fetch.sh"
 )
 
-PACKAGE_JSON = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "package.json"
+PRE_STOP_SCRIPT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "merge.sh"
+)
+
+EUROPA_APP = os.path.dirname(os.path.abspath(__file__))
+
+GARDEN_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "garden.yml"
+)
+
+KUBECONFIG_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "kubeconfig.yml"
 )
 
 
@@ -686,11 +731,15 @@ class BuildPack:
 
         tar.add(ENTRYPOINT_FILE, "repo2docker-entrypoint", filter=_filter_tar)
         tar.add(NOTEBOOK_CONFIG_FILE, "jupyter_notebook_config.py", filter=_filter_tar)
-        tar.add(PRE_STOP_SCRIPT, "merge_to_master.sh", filter=_filter_tar)
-        tar.add(POST_START_SCRIPT, "fetch.sh", filter=_filter_tar)
         tar.add(PACKAGE_JSON, "package.json", filter=_filter_tar)
+        tar.add(AUTOCOMMIT_SCRIPT, "autocommit.sh", filter=_filter_tar)
+        tar.add(POST_START_SCRIPT, "fetch.sh", filter=_filter_tar)
+        tar.add(PRE_STOP_SCRIPT, "merge.sh", filter=_filter_tar)
+        tar.add(GARDEN_FILE, "garden.yml", filter=_filter_tar)
+        tar.add(KUBECONFIG_FILE, "kubeconfig.yml", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
+        tar.add(EUROPA_APP, filter=_filter_tar)
 
         tar.close()
         tarf.seek(0)

@@ -24,8 +24,42 @@ else
     # `GIT_BRANCH` is the original branch
     git pull origin "${GIT_BRANCH}"
     git merge "${GIT_BRANCH}"
-    # so the repo listing in the front-end can be replaced
-    git push origin "${branch}"
 fi
+
+
+if [ ! -f "garden.yml" ]; then
+    cp /home/jovyan/garden.yml .
+fi
+
+# so the repo listing in the front-end can be replaced
+git add .
+git commit -m "auto commit"
+git push origin "${branch}"
+
 echo "Post-start script executed successfully" > "${HOME}"/poststart.log
-echo 0
+
+
+## Autocommit
+
+contains() {
+    [[ $1 =~ (^| )$2($| ) ]] && echo '1' || echo '0'
+}
+
+# safer to explicitly whitelist
+whitelist="py ipynb txt json java go"
+
+# see https://askubuntu.com/questions/819265/bash-script-to-monitor-file-change-and-execute-command
+inotifywait -r -m --event modify --event move --event delete --format "%e %w%f" "${REPO_DIR}" |
+while read event fullpath; do
+    echo "Event: $event on $fullpath"
+    filename=$(basename -- "$fullpath")
+    ext="${filename##*.}"
+    test=$(contains "$whitelist" "$ext")
+    if [ "$test" == '1' ]; then
+        cd "${REPO_DIR}"
+        git add "$fullpath"
+        git commit -m "auto commit"
+        git push origin "$(git rev-parse --abbrev-ref HEAD)"
+        cd -
+    fi
+done

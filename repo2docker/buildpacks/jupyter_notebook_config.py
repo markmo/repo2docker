@@ -27,6 +27,10 @@ c.ServerProxy.servers = {
     'theia': {
         'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
         'port': 8080
+    },
+    'europa': {
+        'command': ['PYTHONPATH=/home/jovyan/europa', 'python3', '/home/jovyan/europa/wsgi.py'],
+        'port': 8081
     }
 }
 
@@ -43,8 +47,15 @@ def commit_changes(model, os_path, contents_manager, **kwargs):
         # as that can deadlock based on the child process output volume. 
         # Use Popen with the communicate() method when you need pipes.
         sys.stdout.write('git add\n')
+        # subprocess.check_call(
+        #     ["git", "add", filename],
+        #     cwd=workdir,
+        #     stdout=sys.stdout
+        # )
+        # 
+        # other files such as .gitignore are getting updated
         subprocess.check_call(
-            ["git", "add", filename],
+            ["git", "add", '.'],
             cwd=workdir,
             stdout=sys.stdout
         )
