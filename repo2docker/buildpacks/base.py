@@ -226,10 +226,10 @@ WORKDIR ${REPO_DIR}
 COPY /europa/ /home/$NB_USER/europa/
 
 # Install GCloud
-RUN mkdir $HOME/gcloud && \
-    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C $HOME/gcloud && \
-    $HOME/gcloud/google-cloud-sdk/install.sh --quiet && \
-    echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$PATH' >> $BASH_ENV
+RUN mkdir /home/$NB_USER/gcloud && \
+    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
+    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
+    echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$PATH' >> /home/$NB_USER/.bashrc
 
 # Install Garden
 RUN apt-get -qq update && \
