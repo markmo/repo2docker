@@ -21,7 +21,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Set up locales properly
 RUN apt-get -qq update && \
-    apt-get -qq install --yes --no-install-recommends locales > /dev/null && \
+    apt-get -qq install --yes --no-install-recommends locales git rsync curl > /dev/null && \
     apt-get -qq purge && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
@@ -35,6 +35,9 @@ ENV LANGUAGE en_US.UTF-8
 
 # Use bash as default shell, rather than sh
 ENV SHELL /bin/bash
+
+# Install Garden
+RUN curl -sL https://get.garden.io/install.sh | bash
 
 # Set up user
 ARG NB_USER
@@ -230,15 +233,6 @@ RUN mkdir /home/$NB_USER/gcloud && \
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
     /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
     echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$PATH' >> /home/$NB_USER/.bashrc
-
-# Install Garden
-RUN apt-get -qq update && \
-    apt-get -qq install --yes --no-install-recommends git rsync curl > /dev/null && \
-    apt-get -qq purge && \
-    apt-get -qq clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN curl -sL https://get.garden.io/install.sh | bash
 
 COPY /kubeconfig.yml /home/$NB_USER/.kube/config
 COPY /garden.yml /home/$NB_USER/garden.yml
