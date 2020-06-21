@@ -213,8 +213,8 @@ RUN mkdir /home/$NB_USER/gcloud && \
     echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$PATH' >> /home/$NB_USER/.bashrc
 
 # Install Garden
-# RUN curl -sL https://get.garden.io/install.sh | bash && \
-#     echo "export PATH=$PATH:$HOME/.garden/bin" >> /home/$NBUSER/.bashrc
+RUN curl -sL https://get.garden.io/install.sh | bash && \
+    echo "export PATH=$PATH:$HOME/.garden/bin" >> /home/$NBUSER/.bashrc
 
 COPY /kubeconfig.yml /home/$NB_USER/.kube/config
 COPY /garden.yml /home/$NB_USER/garden.yml
