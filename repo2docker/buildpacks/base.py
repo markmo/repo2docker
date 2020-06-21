@@ -739,7 +739,7 @@ class BuildPack:
         tar.add(KUBECONFIG_FILE, "kubeconfig.yml", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
-        tar.add(EUROPA_APP, filter=_filter_tar)
+        tar.add(EUROPA_APP, "europa", filter=_filter_tar)
 
         tar.close()
         tarf.seek(0)
