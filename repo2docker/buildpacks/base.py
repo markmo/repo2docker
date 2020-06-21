@@ -36,8 +36,10 @@ ENV LANGUAGE en_US.UTF-8
 # Use bash as default shell, rather than sh
 ENV SHELL /bin/bash
 
-# Install Garden
-RUN curl -sL https://get.garden.io/install.sh | bash
+# Install kubectl
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
+    chmod +x ./kubectl && \
+    mv ./kubectl /usr/local/bin/kubectl
 
 # Set up user
 ARG NB_USER
@@ -204,6 +206,19 @@ RUN echo "{{item}}" >> .gitignore
 {% endfor -%}
 {% endif -%}
 
+# Install GCloud
+RUN mkdir /home/$NB_USER/gcloud && \
+    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
+    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
+    echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$PATH' >> /home/$NB_USER/.bashrc
+
+# Install Garden
+# RUN curl -sL https://get.garden.io/install.sh | bash && \
+#     echo "export PATH=$PATH:$HOME/.garden/bin" >> /home/$NBUSER/.bashrc
+
+COPY /kubeconfig.yml /home/$NB_USER/.kube/config
+COPY /garden.yml /home/$NB_USER/garden.yml
+
 # Add Jupyter Notebook config
 COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
 
@@ -212,30 +227,20 @@ COPY /autocommit.sh /home/$NB_USER/autocommit.sh
 COPY /fetch.sh /home/$NB_USER/fetch.sh
 COPY /merge.sh /home/$NB_USER/merge.sh
 
+# Install Europa
+COPY /europa/ /home/$NB_USER/europa/
+
 # Install Theia
 RUN npm install -g yarn
-
 COPY /package.json /home/$NB_USER/package.json
 
 WORKDIR /home/$NB_USER
 # Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
-RUN yarn install --network-timeout 100000
-RUN yarn theia build
+RUN yarn install --network-timeout 100000 && \
+    yarn theia build
 ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
 RUN pip install jupyter-server-proxy
 WORKDIR ${REPO_DIR}
-
-# Install Europa
-COPY /europa/ /home/$NB_USER/europa/
-
-# Install GCloud
-RUN mkdir /home/$NB_USER/gcloud && \
-    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
-    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
-    echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$PATH' >> /home/$NB_USER/.bashrc
-
-COPY /kubeconfig.yml /home/$NB_USER/.kube/config
-COPY /garden.yml /home/$NB_USER/garden.yml
 
 RUN git config --global user.email "jovyan@europanb.com"
 RUN git config --global user.name "europanb"
