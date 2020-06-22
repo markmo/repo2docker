@@ -216,11 +216,11 @@ ENV GOOGLE_COMPUTE_ZONE us-central1-b
 
 RUN mkdir /home/$NB_USER/gcloud && \
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
-    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-3323e3dafb26.json && \
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b && \
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud services enable cloudresourcemanager.googleapis.com
+    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet
+    # /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-3323e3dafb26.json && \
+    # /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
+    # /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b && \
+    # /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud services enable cloudresourcemanager.googleapis.com
 
 # Install Garden
 RUN curl -sL https://get.garden.io/install.sh | bash
