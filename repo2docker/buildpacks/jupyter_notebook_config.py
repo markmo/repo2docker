@@ -62,7 +62,7 @@ def commit_changes(model, os_path, contents_manager, **kwargs):
 
         sys.stdout.write('git commit\n')
         subprocess.check_call(
-            ["git", "commit", "-m", "updates from europa"],
+            ["git", "commit", "-m", "auto commit"],
             cwd=workdir,
             stdout=sys.stdout
         )
