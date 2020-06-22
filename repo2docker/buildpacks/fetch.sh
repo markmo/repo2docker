@@ -41,7 +41,9 @@ echo "Post-start script executed successfully" > "${HOME}"/poststart.log
 
 ## Autocommit
 
-/bin/bash "${HOME}"/autocommit.sh > autocommit.log &
+# or exec ...
+nohup /bin/bash "${HOME}"/autocommit.sh > autocommit.log &
+disown
 
 # contains() {
 #     [[ $1 =~ (^| )$2($| ) ]] && echo '1' || echo '0'
