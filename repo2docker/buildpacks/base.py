@@ -216,7 +216,7 @@ ENV GOOGLE_COMPUTE_ZONE us-central1-b
 
 RUN mkdir /home/$NB_USER/gcloud && \
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
-    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet
+    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
     /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
     # shows warning for unknown reason
     /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
