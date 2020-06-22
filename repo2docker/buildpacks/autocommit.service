@@ -1,0 +1,9 @@
+[Unit]
+Description=Autocommit service
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /home/jovyan/autocommit.sh
+
+[Install]
+WantedBy=multi.user.target

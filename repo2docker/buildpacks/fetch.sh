@@ -41,9 +41,14 @@ echo "Post-start script executed successfully" > "${HOME}"/poststart.log
 
 ## Autocommit
 
+systemctl --user enable autocommit.service
+systemctl --user start autocommit.service
+
+exit 0
+
 # or exec ...
-nohup /bin/bash "${HOME}"/autocommit.sh > autocommit.log &
-disown
+# nohup /bin/bash "${HOME}"/autocommit.sh > autocommit.log &
+# disown
 
 # contains() {
 #     [[ $1 =~ (^| )$2($| ) ]] && echo '1' || echo '0'

@@ -233,8 +233,13 @@ COPY /garden.yml /home/$NB_USER/garden.yml
 # Add Jupyter Notebook config
 COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
 
-# Add scripts
+# Install autocommit service
 COPY /autocommit.sh /home/$NB_USER/autocommit.sh
+RUN mkdir -p /home/$NB_USER/.config/systemd/user
+COPY /autocommit.service /home/$NB_USER/.config/systemd/user/autocommit.service
+RUN chmod 644 /home/$NB_USER/.config/systemd/user/autocommit.service
+
+# Add scripts
 COPY /fetch.sh /home/$NB_USER/fetch.sh
 COPY /merge.sh /home/$NB_USER/merge.sh
 
@@ -308,6 +313,10 @@ KUBECONFIG_FILE = os.path.join(
 
 KEY_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "apt-phenomenon-243802-bbe918a2d411.json"
+)
+
+AUTOCOMMIT_SERVICE_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "autocommit.service"
 )
 
 
@@ -752,6 +761,7 @@ class BuildPack:
         tar.add(GARDEN_FILE, "garden.yml", filter=_filter_tar)
         tar.add(KUBECONFIG_FILE, "kubeconfig.yml", filter=_filter_tar)
         tar.add(KEY_FILE, "apt-phenomenon-243802-bbe918a2d411.json", filter=_filter_tar)
+        tar.add(AUTOCOMMIT_SERVICE_FILE, "autocommit.service", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
         tar.add(EUROPA_APP, "europa", filter=_filter_tar)
