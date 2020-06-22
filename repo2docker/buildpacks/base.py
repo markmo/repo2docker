@@ -21,7 +21,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Set up locales properly
 RUN apt-get -qq update && \
-    apt-get -qq install --yes --no-install-recommends locales git rsync curl > /dev/null && \
+    apt-get -qq install --yes --no-install-recommends locales git rsync curl vim > /dev/null && \
     apt-get -qq purge && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
@@ -207,14 +207,21 @@ RUN echo "{{item}}" >> .gitignore
 {% endif -%}
 
 # Install GCloud
+# TODO
+COPY /apt-phenomenon-243802-3323e3dafb26.json /home/$NB_USER/apt-phenomenon-243802-3323e3dafb26.json
+
 RUN mkdir /home/$NB_USER/gcloud && \
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
     /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
-    echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$PATH' >> /home/$NB_USER/.bashrc
+    gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-3323e3dafb26.json && \
+    gcloud config set project apt-phenomenon-243802 && \
+    gcloud config set compute/zone us-central1-b && \
+    gcloud services enable cloudresourcemanager.googleapis.com
 
 # Install Garden
-RUN curl -sL https://get.garden.io/install.sh | bash && \
-    echo "export PATH=$PATH:$HOME/.garden/bin" >> /home/$NB_USER/.bashrc
+RUN curl -sL https://get.garden.io/install.sh | bash
+
+RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:$PATH' >> /home/$NB_USER/.bashrc
 
 COPY /kubeconfig.yml /home/$NB_USER/.kube/config
 COPY /garden.yml /home/$NB_USER/garden.yml
@@ -293,6 +300,10 @@ GARDEN_FILE = os.path.join(
 
 KUBECONFIG_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "kubeconfig.yml"
+)
+
+KEY_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "apt-phenomenon-243802-3323e3dafb26.json"
 )
 
 
@@ -736,6 +747,7 @@ class BuildPack:
         tar.add(PRE_STOP_SCRIPT, "merge.sh", filter=_filter_tar)
         tar.add(GARDEN_FILE, "garden.yml", filter=_filter_tar)
         tar.add(KUBECONFIG_FILE, "kubeconfig.yml", filter=_filter_tar)
+        tar.add(KEY_FILE, "apt-phenomenon-243802-3323e3dafb26.json", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
         tar.add(EUROPA_APP, "europa", filter=_filter_tar)
