@@ -208,26 +208,26 @@ RUN echo "{{item}}" >> .gitignore
 
 # Install GCloud
 # TODO
-COPY /apt-phenomenon-243802-3323e3dafb26.json /home/$NB_USER/apt-phenomenon-243802-3323e3dafb26.json
+COPY /apt-phenomenon-243802-bbe918a2d411.json /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
 
-ENV GCLOUD_SERVICE_KEY /home/$NB_USER/apt-phenomenon-243802-3323e3dafb26.json
+ENV GCLOUD_SERVICE_KEY /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
 ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
 ENV GOOGLE_COMPUTE_ZONE us-central1-b
 
 RUN mkdir /home/$NB_USER/gcloud && \
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
     /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet
-    # /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-3323e3dafb26.json && \
-    # /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
-    # /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b && \
-    # /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud services enable cloudresourcemanager.googleapis.com
+    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
+    # shows warning for unknown reason
+    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
+    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
 
 # Install Garden
 RUN curl -sL https://get.garden.io/install.sh | bash
 
 RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:$PATH' >> /home/$NB_USER/.bashrc
 
-# COPY /kubeconfig.yml /home/$NB_USER/.kube/config
+COPY /kubeconfig.yml /home/$NB_USER/.kube/config
 COPY /garden.yml /home/$NB_USER/garden.yml
 
 # Add Jupyter Notebook config
@@ -307,7 +307,7 @@ KUBECONFIG_FILE = os.path.join(
 )
 
 KEY_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "apt-phenomenon-243802-3323e3dafb26.json"
+    os.path.dirname(os.path.abspath(__file__)), "apt-phenomenon-243802-bbe918a2d411.json"
 )
 
 
@@ -751,7 +751,7 @@ class BuildPack:
         tar.add(PRE_STOP_SCRIPT, "merge.sh", filter=_filter_tar)
         tar.add(GARDEN_FILE, "garden.yml", filter=_filter_tar)
         tar.add(KUBECONFIG_FILE, "kubeconfig.yml", filter=_filter_tar)
-        tar.add(KEY_FILE, "apt-phenomenon-243802-3323e3dafb26.json", filter=_filter_tar)
+        tar.add(KEY_FILE, "apt-phenomenon-243802-bbe918a2d411.json", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
         tar.add(EUROPA_APP, "europa", filter=_filter_tar)
