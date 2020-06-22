@@ -218,6 +218,10 @@ RUN mkdir /home/$NB_USER/gcloud && \
     gcloud config set compute/zone us-central1-b && \
     gcloud services enable cloudresourcemanager.googleapis.com
 
+ENV GCLOUD_SERVICE_KEY /home/$NB_USER/apt-phenomenon-243802-3323e3dafb26.json
+ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
+ENV GOOGLE_COMPUTE_ZONE us-central1-b
+
 # Install Garden
 RUN curl -sL https://get.garden.io/install.sh | bash
 
