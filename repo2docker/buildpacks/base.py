@@ -237,7 +237,7 @@ COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config
 COPY /autocommit.sh /home/$NB_USER/autocommit.sh
 RUN mkdir -p /home/$NB_USER/.config/systemd/user
 COPY /autocommit.service /home/$NB_USER/.config/systemd/user/autocommit.service
-RUN chmod 644 /home/$NB_USER/.config/systemd/user/autocommit.service
+# RUN chmod 644 /home/$NB_USER/.config/systemd/user/autocommit.service
 
 # Add scripts
 COPY /fetch.sh /home/$NB_USER/fetch.sh
