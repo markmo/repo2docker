@@ -67,6 +67,7 @@ ENV HOME /home/${NB_USER}
 
 # Base package installs are not super interesting to users, so hide their outputs
 # If install fails for some reason, errors will still be printed
+{% if base_packages -%}
 RUN apt-get -qq update && \
     apt-get -qq install --yes --no-install-recommends \
        {% for package in base_packages -%}
@@ -76,6 +77,7 @@ RUN apt-get -qq update && \
     apt-get -qq purge && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
+{% endif -%}
 
 {% if packages -%}
 RUN apt-get -qq update && \
