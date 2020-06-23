@@ -15,7 +15,7 @@ c.NotebookApp.allow_origin = '*'
 # Cache-Control - prevent https://github.com/nteract/nteract/issues/3850
 c.NotebookApp.tornado_settings = {
   'headers': {
-    'Content-Security-Policy': "frame-ancestors 'self' https://*.atlassian.net https://*.ngrok.io https://*.europanb.net https://*.europanb.online https://*.devsheds.io http://localhost:5000 http://192.168.99.100:32574",
+    'Content-Security-Policy': "frame-ancestors 'self' https://*.atlassian.net https://bitbucket.org https://*.bitbucket.org https://*.ngrok.io https://*.europanb.net https://*.europanb.online https://*.devsheds.io https://*.devsheds.net https://*.devsheds.online http://localhost:5000",
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrftoken, ETag',
     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
@@ -24,13 +24,13 @@ c.NotebookApp.tornado_settings = {
 }
 
 c.ServerProxy.servers = {
-    'theia': {
-        'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
-        'port': 8080
-    },
     'europa': {
         'command': ['PYTHONPATH=/home/jovyan/europa', 'python3', '/home/jovyan/europa/wsgi.py'],
         'port': 8081
+    },
+    'theia': {
+        'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
+        'port': 8080
     }
 }
 
