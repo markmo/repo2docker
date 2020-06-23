@@ -14,20 +14,21 @@ import xml.etree.ElementTree as ET
 from traitlets import Dict
 
 TEMPLATE = r"""
-FROM buildpack-deps:bionic
+# FROM buildpack-deps:bionic
 
-# avoid prompts from apt
-ENV DEBIAN_FRONTEND=noninteractive
+# # avoid prompts from apt
+# ENV DEBIAN_FRONTEND=noninteractive
 
-# Set up locales properly
-RUN apt-get -qq update && \
-    apt-get -qq install --yes --no-install-recommends locales git rsync curl vim > /dev/null && \
-    apt-get -qq purge && \
-    apt-get -qq clean && \
-    rm -rf /var/lib/apt/lists/*
+# # Set up locales properly
+# RUN apt-get -qq update && \
+#     apt-get -qq install --yes --no-install-recommends locales git rsync curl vim > /dev/null && \
+#     apt-get -qq purge && \
+#     apt-get -qq clean && \
+#     rm -rf /var/lib/apt/lists/*
 
-RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
-    locale-gen
+# RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+#     locale-gen
+FROM markmo/europabase
 
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
@@ -36,10 +37,10 @@ ENV LANGUAGE en_US.UTF-8
 # Use bash as default shell, rather than sh
 ENV SHELL /bin/bash
 
-# Install kubectl
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
-    chmod +x ./kubectl && \
-    mv ./kubectl /usr/local/bin/kubectl
+# # Install kubectl
+# RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
+#     chmod +x ./kubectl && \
+#     mv ./kubectl /usr/local/bin/kubectl
 
 # Set up user
 ARG NB_USER
@@ -47,22 +48,22 @@ ARG NB_UID
 ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
-RUN groupadd \
-        --gid ${NB_UID} \
-        ${NB_USER} && \
-    useradd \
-        --comment "Default user" \
-        --create-home \
-        --gid ${NB_UID} \
-        --no-log-init \
-        --shell /bin/bash \
-        --uid ${NB_UID} \
-        ${NB_USER}
+# RUN groupadd \
+#         --gid ${NB_UID} \
+#         ${NB_USER} && \
+#     useradd \
+#         --comment "Default user" \
+#         --create-home \
+#         --gid ${NB_UID} \
+#         --no-log-init \
+#         --shell /bin/bash \
+#         --uid ${NB_UID} \
+#         ${NB_USER}
 
-RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  apt-key add - && \
-    DISTRO="bionic" && \
-    echo "deb https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
-    echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
+# RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  apt-key add - && \
+#     DISTRO="bionic" && \
+#     echo "deb https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
+#     echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
 
 # Base package installs are not super interesting to users, so hide their outputs
 # If install fails for some reason, errors will still be printed
@@ -88,13 +89,13 @@ RUN apt-get -qq update && \
     rm -rf /var/lib/apt/lists/*
 {% endif -%}
 
-# tool to watch for file changes
-RUN apt-get -qq update && \
-    apt-get -qq install --yes inotify-tools \
-    > /dev/null && \
-    apt-get -qq purge && \
-    apt-get -qq clean && \
-    rm -rf /var/lib/apt/lists/*
+# # tool to watch for file changes
+# RUN apt-get -qq update && \
+#     apt-get -qq install --yes inotify-tools \
+#     > /dev/null && \
+#     apt-get -qq purge && \
+#     apt-get -qq clean && \
+#     rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8888
 
@@ -206,26 +207,26 @@ RUN echo "{{item}}" >> .gitignore
 {% endfor -%}
 {% endif -%}
 
-# Install GCloud
-# TODO
-COPY /apt-phenomenon-243802-bbe918a2d411.json /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
+# # Install GCloud
+# # TODO
+# COPY /apt-phenomenon-243802-bbe918a2d411.json /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
 
-ENV GCLOUD_SERVICE_KEY /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
-ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
-ENV GOOGLE_COMPUTE_ZONE us-central1-b
+# ENV GCLOUD_SERVICE_KEY /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
+# ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
+# ENV GOOGLE_COMPUTE_ZONE us-central1-b
 
-RUN mkdir /home/$NB_USER/gcloud && \
-    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
-    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
-    # shows warning for unknown reason
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
+# RUN mkdir /home/$NB_USER/gcloud && \
+#     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
+#     /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
+#     /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
+#     # shows warning for unknown reason
+#     /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
+#     /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
 
-# Install Garden
-RUN curl -sL https://get.garden.io/install.sh | bash
+# # Install Garden
+# RUN curl -sL https://get.garden.io/install.sh | bash
 
-RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:$PATH' >> /home/$NB_USER/.bashrc
+# RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:$PATH' >> /home/$NB_USER/.bashrc
 
 COPY /kubeconfig.yml /home/$NB_USER/.kube/config
 COPY /garden.yml /home/$NB_USER/garden.yml
@@ -248,17 +249,23 @@ COPY /merge.sh /home/$NB_USER/merge.sh
 # Install Europa
 COPY /europa/ /home/$NB_USER/europa/
 
-# Install Theia
-RUN npm install -g yarn
-COPY /package.json /home/$NB_USER/package.json
+# # Install Theia
+# RUN npm install -g yarn
+# COPY /package.json /home/$NB_USER/package.json
 
-WORKDIR /home/$NB_USER
-# Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
-RUN yarn install --network-timeout 100000 && \
-    yarn theia build
-ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
+# WORKDIR /home/$NB_USER
+# # Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
+# RUN yarn install --network-timeout 100000 && \
+#     yarn theia build
+# ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
+
 RUN pip install jupyter-server-proxy
 WORKDIR ${REPO_DIR}
+
+# see https://community.theia-ide.org/t/need-help-updating-theia-core-and-deploying-it-to-a-docker-container/648/20
+# https://github.com/eclipse-theia/theia/blob/fc49b2c3b8a690ba5b94e1fd48cf17469b51057d/packages/plugin-ext/src/main/common/webview-protocol.ts#L17-L27
+# https://github.com/eclipse-theia/theia/blob/cf86e86857c45ab82366508cd270d217d6d66b04/packages/plugin-ext/src/main/browser/webview/webview-environment.ts#L33
+ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT localhost
 
 RUN git config --global user.email "jovyan@europanb.com"
 RUN git config --global user.name "europanb"
@@ -370,9 +377,9 @@ class BuildPack:
         """
         return {
             # Utils!
-            "less",
-            "nodejs",
-            "unzip",
+            # "less",
+            # "nodejs",
+            # "unzip",
         }
 
     def get_build_env(self):
@@ -762,7 +769,7 @@ class BuildPack:
         tar.add(PRE_STOP_SCRIPT, "merge.sh", filter=_filter_tar)
         tar.add(GARDEN_FILE, "garden.yml", filter=_filter_tar)
         tar.add(KUBECONFIG_FILE, "kubeconfig.yml", filter=_filter_tar)
-        tar.add(KEY_FILE, "apt-phenomenon-243802-bbe918a2d411.json", filter=_filter_tar)
+        # tar.add(KEY_FILE, "apt-phenomenon-243802-bbe918a2d411.json", filter=_filter_tar)
         tar.add(AUTOCOMMIT_SERVICE_FILE, "autocommit.service", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
@@ -809,29 +816,29 @@ class BaseImage(BuildPack):
     def get_build_env(self):
         """Return env directives required for build"""
         return [
-            ("APP_BASE", "/srv"),
-            ("NPM_DIR", "${APP_BASE}/npm"),
-            ("NPM_CONFIG_GLOBALCONFIG", "${NPM_DIR}/npmrc"),
+            # ("APP_BASE", "/srv"),
+            # ("NPM_DIR", "${APP_BASE}/npm"),
+            # ("NPM_CONFIG_GLOBALCONFIG", "${NPM_DIR}/npmrc"),
         ]
 
     def get_path(self):
-        return super().get_path() + ["${NPM_DIR}/bin"]
+        return super().get_path()# + ["${NPM_DIR}/bin"]
 
     def get_build_scripts(self):
         scripts = [
-            (
-                "root",
-                r"""
-                mkdir -p ${NPM_DIR} && \
-                chown -R ${NB_USER}:${NB_USER} ${NPM_DIR}
-                """,
-            ),
-            (
-                "${NB_USER}",
-                r"""
-                npm config --global set prefix ${NPM_DIR}
-                """,
-            ),
+            # (
+            #     "root",
+            #     r"""
+            #     mkdir -p ${NPM_DIR} && \
+            #     chown -R ${NB_USER}:${NB_USER} ${NPM_DIR}
+            #     """,
+            # ),
+            # (
+            #     "${NB_USER}",
+            #     r"""
+            #     npm config --global set prefix ${NPM_DIR}
+            #     """,
+            # ),
         ]
 
         return super().get_build_scripts() + scripts

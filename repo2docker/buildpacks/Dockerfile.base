@@ -1,0 +1,94 @@
+FROM buildpack-deps:bionic
+
+# avoid prompts from apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set up locales properly
+RUN apt-get -qq update && \
+    apt-get -qq install --yes --no-install-recommends locales > /dev/null && \
+    apt-get -qq purge && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen
+
+# Install kubectl
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
+    chmod +x ./kubectl && \
+    mv ./kubectl /usr/local/bin/kubectl
+
+# Set up user
+ARG NB_USER
+ARG NB_UID
+ENV USER ${NB_USER}
+ENV HOME /home/${NB_USER}
+
+RUN groupadd \
+        --gid ${NB_UID} \
+        ${NB_USER} && \
+    useradd \
+        --comment "Default user" \
+        --create-home \
+        --gid ${NB_UID} \
+        --no-log-init \
+        --shell /bin/bash \
+        --uid ${NB_UID} \
+        ${NB_USER}
+
+RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  apt-key add - && \
+    DISTRO="bionic" && \
+    echo "deb https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
+    echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
+
+RUN apt-get -qq update && \
+    apt-get -qq install --yes --no-install-recommends git rsync curl vim less nodejs unzip inotify-tools > /dev/null && \
+    apt-get -qq purge && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV APP_BASE /src
+ENV NPM_DIR ${APP_BASE}/npm
+ENV NPM_CONFIG_GLOBALCONFIG ${NPM_DIR}/npmrc
+ENV PATH ${NPM_DIR}/bin:${PATH}
+
+RUN mkdir -p ${NPM_DIR} && \
+    chown -R ${NB_USER}:${NB_USER} ${NPM_DIR}
+
+USER ${NB_USER}
+
+RUN npm config --global set prefix ${NPM_DIR}
+
+# Install GCloud
+# TODO
+COPY apt-phenomenon-243802-bbe918a2d411.json /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
+
+ENV GCLOUD_SERVICE_KEY /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
+ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
+ENV GOOGLE_COMPUTE_ZONE us-central1-b
+
+RUN mkdir /home/$NB_USER/gcloud && \
+    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
+    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
+    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
+    # shows warning for unknown reason
+    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
+    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
+
+# Install Garden
+RUN curl -sL https://get.garden.io/install.sh | bash
+
+RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:$PATH' >> /home/$NB_USER/.bashrc
+
+# Install Theia
+RUN npm install -g yarn
+COPY /package.json /home/$NB_USER/package.json
+
+WORKDIR /home/$NB_USER
+# Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
+RUN yarn install --network-timeout 100000 && \
+    yarn theia build
+ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
+
+# RUN pip install jupyter-server-proxy
+# WORKDIR ${REPO_DIR}
