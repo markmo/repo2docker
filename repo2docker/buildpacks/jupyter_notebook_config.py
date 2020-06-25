@@ -29,7 +29,7 @@ c.ServerProxy.servers = {
         'port': 8081
     },
     'garden': {
-        'command': ['GARDEN_SERVER_PORT=9777', 'garden', 'dev'],
+        'command': ['garden', 'dev'],
         'port': 9777,
         'absolute_url': True
     },
