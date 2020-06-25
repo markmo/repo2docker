@@ -29,7 +29,7 @@ c.ServerProxy.servers = {
         'port': 8081
     },
     'garden': {
-        'command': ['garden', 'dev'],
+        'command': ['/home/jovyan/.garden/bin/garden', 'dev', '--root=/home/jovyan/work', '--env=remote'],
         'port': 9777,
         'absolute_url': True
     },
