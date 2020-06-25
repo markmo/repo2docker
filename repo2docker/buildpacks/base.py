@@ -172,8 +172,9 @@ RUN chown -R ${NB_USER}:${NB_USER} ${REPO_DIR}
 # you can't actually copy as USER, only as root! Thanks, Docker!
 USER root
 COPY src/ ${REPO_DIR}
-RUN chown -R ${NB_USER}:${NB_USER} ${REPO_DIR}
-RUN chown -R ${NB_USER}:${NB_USER} /home/$NB_USER/.jupyter
+RUN chown -R ${NB_USER}:${NB_USER} ${REPO_DIR} && \
+    mkdir -p /home/$NB_USER/.jupyter && \
+    chown -R ${NB_USER}:${NB_USER} /home/$NB_USER/.jupyter
 
 # Run assemble scripts! These will actually turn the specification
 # in the repository into an image.
