@@ -173,6 +173,7 @@ RUN chown -R ${NB_USER}:${NB_USER} ${REPO_DIR}
 USER root
 COPY src/ ${REPO_DIR}
 RUN chown -R ${NB_USER}:${NB_USER} ${REPO_DIR}
+RUN chown -R ${NB_USER}:${NB_USER} /home/$NB_USER/.jupyter
 
 # Run assemble scripts! These will actually turn the specification
 # in the repository into an image.

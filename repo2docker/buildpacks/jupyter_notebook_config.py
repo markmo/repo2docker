@@ -28,6 +28,11 @@ c.ServerProxy.servers = {
         'command': ['PYTHONPATH=/home/jovyan/europa', 'python3', '/home/jovyan/europa/wsgi.py'],
         'port': 8081
     },
+    'garden': {
+        'command': ['GARDEN_SERVER_PORT=9777', 'garden', 'dev'],
+        'port': 9777,
+        'absolute_url': True
+    },
     'theia': {
         'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
         'port': 8080
