@@ -46,7 +46,7 @@ fi
 # avoid future changes to default channel_priority behavior
 conda config --system --set channel_priority "flexible"
 
-echo "installing notebook env:"
+echo "installing notebook env: ${NB_PYTHON_PREFIX}"
 cat /tmp/environment.yml
 conda env create -p ${NB_PYTHON_PREFIX} -f /tmp/environment.yml
 

@@ -30,19 +30,19 @@ class CondaBuildPack(BaseImage):
         the `NB_PYTHON_PREFIX` to the location of the jupyter binary.
 
         """
-        env = super().get_build_env() + [
-            ("CONDA_DIR", "${APP_BASE}/conda"),
-            ("NB_PYTHON_PREFIX", "${CONDA_DIR}/envs/notebook"),
-        ]
-        if self.py2:
-            env.append(("KERNEL_PYTHON_PREFIX", "${CONDA_DIR}/envs/kernel"))
-        else:
-            env.append(("KERNEL_PYTHON_PREFIX", "${NB_PYTHON_PREFIX}"))
+        env = super().get_build_env()# + [
+        #     ("CONDA_DIR", "${APP_BASE}/conda"),
+        #     ("NB_PYTHON_PREFIX", "${CONDA_DIR}/envs/notebook"),
+        # ]
+        # if self.py2:
+        #     env.append(("KERNEL_PYTHON_PREFIX", "${CONDA_DIR}/envs/kernel"))
+        # else:
+        #     env.append(("KERNEL_PYTHON_PREFIX", "${NB_PYTHON_PREFIX}"))
         return env
 
     def get_env(self):
         """Make kernel env the default for `conda install`"""
-        env = super().get_env() + [("CONDA_DEFAULT_ENV", "${KERNEL_PYTHON_PREFIX}")]
+        env = super().get_env()# + [("CONDA_DEFAULT_ENV", "${KERNEL_PYTHON_PREFIX}")]
         return env
 
     def get_path(self):
@@ -51,10 +51,10 @@ class CondaBuildPack(BaseImage):
 
         """
         path = super().get_path()
-        path.insert(0, "${CONDA_DIR}/bin")
-        if self.py2:
-            path.insert(0, "${KERNEL_PYTHON_PREFIX}/bin")
-        path.insert(0, "${NB_PYTHON_PREFIX}/bin")
+        # path.insert(0, "${CONDA_DIR}/bin")
+        # if self.py2:
+        #     path.insert(0, "${KERNEL_PYTHON_PREFIX}/bin")
+        # path.insert(0, "${NB_PYTHON_PREFIX}/bin")
         return path
 
     def get_build_scripts(self):
@@ -75,15 +75,15 @@ class CondaBuildPack(BaseImage):
             - support for nteract
 
         """
-        return super().get_build_scripts() + [
-            (
-                "root",
-                r"""
-                bash /tmp/install-miniconda.bash && \
-                rm /tmp/install-miniconda.bash /tmp/environment.yml
-                """,
-            )
-        ]
+        return super().get_build_scripts()# + [
+        #     (
+        #         "root",
+        #         r"""
+        #         bash /tmp/install-miniconda.bash && \
+        #         rm /tmp/install-miniconda.bash /tmp/environment.yml
+        #         """,
+        #     )
+        # ]
 
     major_pythons = {"2": "2.7", "3": "3.7"}
 
@@ -103,8 +103,8 @@ class CondaBuildPack(BaseImage):
 
         """
         files = {
-            "conda/install-miniconda.bash": "/tmp/install-miniconda.bash",
-            "conda/activate-conda.sh": "/etc/profile.d/activate-conda.sh",
+            # "conda/install-miniconda.bash": "/tmp/install-miniconda.bash",
+            # "conda/activate-conda.sh": "/etc/profile.d/activate-conda.sh",
         }
         py_version = self.python_version
         self.log.info("Building conda environment for python=%s" % py_version)
@@ -113,20 +113,20 @@ class CondaBuildPack(BaseImage):
         # major Python versions during upgrade.
         # If no version is specified or no matching X.Y version is found,
         # the default base environment is used.
-        frozen_name = "environment.frozen.yml"
-        if py_version:
-            if self.py2:
-                # python 2 goes in a different env
-                files[
-                    "conda/environment.py-2.7.frozen.yml"
-                ] = "/tmp/kernel-environment.yml"
-            else:
-                py_frozen_name = "environment.py-{py}.frozen.yml".format(py=py_version)
-                if os.path.exists(os.path.join(HERE, py_frozen_name)):
-                    frozen_name = py_frozen_name
-                else:
-                    self.log.warning("No frozen env: %s", py_frozen_name)
-        files["conda/" + frozen_name] = "/tmp/environment.yml"
+        # frozen_name = "environment.frozen.yml"
+        # if py_version:
+        #     if self.py2:
+        #         # python 2 goes in a different env
+        #         files[
+        #             "conda/environment.py-2.7.frozen.yml"
+        #         ] = "/tmp/kernel-environment.yml"
+        #     else:
+        #         py_frozen_name = "environment.py-{py}.frozen.yml".format(py=py_version)
+        #         if os.path.exists(os.path.join(HERE, py_frozen_name)):
+        #             frozen_name = py_frozen_name
+        #         else:
+        #             self.log.warning("No frozen env: %s", py_frozen_name)
+        # files["conda/" + frozen_name] = "/tmp/environment.yml"
         files.update(super().get_build_script_files())
         return files
 
