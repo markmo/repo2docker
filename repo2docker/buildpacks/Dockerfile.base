@@ -111,7 +111,7 @@ COPY garden-v0.11.14-linux-amd64.tar.gz /tmp/garden-install/garden-v0.11.14-linu
 
 RUN cd /tmp/garden-install && \
     tar -xzf garden-v0.11.14-linux-amd64.tar.gz && \
-    mv linux-amd64 /home/$NB_USER/.garden/bin
+    mv linux-amd64/* /home/$NB_USER/.garden/bin/
 
 RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:$PATH' >> /home/$NB_USER/.bashrc
 ENV PATH "$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:${PATH}"
