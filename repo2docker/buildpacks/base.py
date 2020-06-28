@@ -254,6 +254,7 @@ COPY /merge.sh /home/$NB_USER/merge.sh
 
 # Install Europa
 COPY /europa/ /home/$NB_USER/europa/
+RUN python3 -m pip install Flask flask-cors
 
 # # Install Theia
 # RUN npm install -g yarn

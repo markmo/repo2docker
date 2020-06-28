@@ -28,11 +28,11 @@ c.ServerProxy.servers = {
         'command': ['PYTHONPATH=/home/jovyan/europa', 'python3', '/home/jovyan/europa/wsgi.py'],
         'port': 8081
     },
-    'garden': {
-        'command': ['/home/jovyan/.garden/bin/garden', 'dev', '--root=/home/jovyan/work', '--env=remote'],
-        'port': 9777,
-        'absolute_url': True
-    },
+    # 'garden': {
+    #     'command': ['/home/jovyan/.garden/bin/garden', 'dev', '--root=/home/jovyan/work', '--env=remote'],
+    #     'port': 9777,
+    #     'absolute_url': True
+    # },
     'theia': {
         'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
         'port': 8080
