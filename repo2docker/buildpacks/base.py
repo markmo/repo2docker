@@ -254,7 +254,7 @@ COPY /merge.sh /home/$NB_USER/merge.sh
 
 # Install Europa
 COPY /europa/ /home/$NB_USER/europa/
-RUN python3 -m pip install Flask flask-cors
+RUN python3 -m pip install Flask flask-cors gevent gevent-ws
 
 # # Install Theia
 # RUN npm install -g yarn
@@ -279,6 +279,7 @@ RUN git config --global user.name "europanb"
 
 ARG GIT_BRANCH
 ENV GIT_BRANCH ${GIT_BRANCH}
+ENV PYTHONPATH /home/${NB_USER}/europa:$PYTHONPATH
 
 # Add entrypoint
 COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint

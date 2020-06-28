@@ -25,7 +25,7 @@ c.NotebookApp.tornado_settings = {
 
 c.ServerProxy.servers = {
     'europa': {
-        'command': ['PYTHONPATH=/home/jovyan/europa', 'python3', '/home/jovyan/europa/wsgi.py'],
+        'command': ['python3', '/home/jovyan/europa/wsgi.py'],
         'port': 8081
     },
     # 'garden': {
