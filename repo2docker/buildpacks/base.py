@@ -317,7 +317,9 @@ PRE_STOP_SCRIPT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "merge.sh"
 )
 
-EUROPA_APP = os.path.dirname(os.path.abspath(__file__))
+EUROPA_APP = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "europa"
+)
 
 GARDEN_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "garden.yml"
