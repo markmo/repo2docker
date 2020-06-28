@@ -24,10 +24,11 @@ c.NotebookApp.tornado_settings = {
 }
 
 c.ServerProxy.servers = {
-    # 'europa': {
-    #     'command': ['python3', '/home/jovyan/europa/app.py'],
-    #     'port': 8081
-    # },
+    'europa': {
+        'command': ['python3', '/home/jovyan/europa/wsgi.py'],
+        'port': 9003,
+        'timeout': 180
+    },
     # 'garden': {
     #     'command': ['/home/jovyan/.garden/bin/garden', 'dev', '--root=/home/jovyan/work', '--env=remote'],
     #     'port': 9777,
