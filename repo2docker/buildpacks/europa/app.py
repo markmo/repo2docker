@@ -5,6 +5,23 @@ import sys
 
 from flask import abort, Flask, jsonify, request, Response
 from flask_cors import CORS, cross_origin
+from logging.config import dictConfig
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -40,6 +57,7 @@ def merge():
 @app.route('/start-garden', methods=['GET'])
 @cross_origin()
 def start_garden():
+    app.logger.info('/start-garden called')
     p = subprocess.Popen(['garden', 'dev', '--logger-type=json'],
         cwd='/home/jovyan/work',
         stdout=subprocess.PIPE,
@@ -48,7 +66,9 @@ def start_garden():
     def event_stream():
         while p.poll() is None:
             line = p.stdout.readline()
-            yield 'data: {}\n\n'.format(line.decode(sys.stdout.encoding).strip('\x00'))
+            line = line.decode(sys.stdout.encoding).strip('\x00')
+            app.logger.debug(line)
+            yield 'data: {}\n\n'.format(line)
 
     return Response(event_stream(), mimetype='text/event-stream', headers={
         'Content-Type': 'text/event-stream',
