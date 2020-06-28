@@ -255,6 +255,7 @@ COPY /merge.sh /home/$NB_USER/merge.sh
 # Install Europa
 COPY /europa/ /home/$NB_USER/europa/
 RUN python3 -m pip install Flask flask-cors gevent gevent-ws
+COPY /europa.service /home/$NB_USER/.config/systemd/user/europa.service
 
 # # Install Theia
 # RUN npm install -g yarn
@@ -336,6 +337,10 @@ KEY_FILE = os.path.join(
 
 AUTOCOMMIT_SERVICE_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "autocommit.service"
+)
+
+EUROPA_SERVICE_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "europa.service"
 )
 
 
@@ -781,6 +786,7 @@ class BuildPack:
         tar.add(KUBECONFIG_FILE, "kubeconfig.yml", filter=_filter_tar)
         # tar.add(KEY_FILE, "apt-phenomenon-243802-bbe918a2d411.json", filter=_filter_tar)
         tar.add(AUTOCOMMIT_SERVICE_FILE, "autocommit.service", filter=_filter_tar)
+        tar.add(EUROPA_SERVICE_FILE, "europa.service", filter=_filter_tar)
 
         tar.add(".", "src/", filter=_filter_tar)
         tar.add(EUROPA_APP, "europa", filter=_filter_tar)

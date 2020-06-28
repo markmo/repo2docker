@@ -44,6 +44,12 @@ echo "Post-start script executed successfully" > "${HOME}"/poststart.log
 systemctl --user enable autocommit.service
 systemctl --user start autocommit.service
 
+
+## Europa API
+
+systemctl --user enable europa.service
+systemctl --user start europa.service
+
 exit 0
 
 # or exec ...
