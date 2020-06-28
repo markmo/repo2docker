@@ -1,3 +1,4 @@
+import json
 import logging
 import subprocess
 import os
@@ -6,6 +7,7 @@ import sys
 from flask import abort, Flask, jsonify, request, Response
 from flask_cors import CORS, cross_origin
 from logging.config import dictConfig
+from threading import Thread
 
 dictConfig({
     'version': 1,
@@ -54,6 +56,19 @@ def merge():
     return 'ok'
 
 
+has_garden_started = False
+messages = []
+
+
+@app.route('/garden-status', methods=['GET'])
+@cross_origin()
+def garden_status():
+    return jsonify({
+        'ready': has_garden_started,
+        'messages': messages
+    })
+
+
 @app.route('/start-garden', methods=['GET'])
 @cross_origin()
 def start_garden():
@@ -63,15 +78,37 @@ def start_garden():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-    def event_stream():
+    global has_garden_started
+    global messages
+    has_garden_started = False
+    messages = []
+
+    def do_work():
+        global has_garden_started
         while p.poll() is None:
             line = p.stdout.readline()
             line = line.decode(sys.stdout.encoding).strip('\x00')
             app.logger.debug(line)
-            yield 'data: {}\n\n'.format(line)
+            r = json.loads(line)
+            messages.append(r)
+            if r['msg'] == 'Waiting for code changes...':
+                has_garden_started = True
+                break
 
-    return Response(event_stream(), mimetype='text/event-stream', headers={
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'X-Accel-Buffering': 'no'
-    })
+    thread = Thread(target=do_work)
+    thread.start()
+    return 'ok'
+
+    # TODO
+    # def event_stream():
+    #     while p.poll() is None:
+    #         line = p.stdout.readline()
+    #         line = line.decode(sys.stdout.encoding).strip('\x00')
+    #         app.logger.debug(line)
+    #         yield 'data: {}\n\n'.format(line)
+
+    # return Response(event_stream(), mimetype='text/event-stream', headers={
+    #     'Content-Type': 'text/event-stream',
+    #     'Cache-Control': 'no-cache',
+    #     'X-Accel-Buffering': 'no'
+    # })
