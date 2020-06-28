@@ -51,7 +51,7 @@ ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
 # TODO remove
-usermod -aG sudo ${NB_USER}
+RUN usermod -aG sudo ${NB_USER}
 
 # RUN groupadd \
 #         --gid ${NB_UID} \
