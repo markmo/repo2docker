@@ -36,8 +36,6 @@ git add .
 git commit -m "auto commit"
 git push origin "${branch}"
 
-echo "Post-start script executed successfully" > "${HOME}"/poststart.log
-
 
 ## Autocommit
 
@@ -47,8 +45,11 @@ systemctl --user start autocommit.service
 
 ## Europa API
 
-systemctl --user enable europa.service
-systemctl --user start europa.service
+# systemctl --user enable europa.service
+# systemctl --user start europa.service
+
+
+echo "Post-start script executed successfully" > "${HOME}"/poststart.log
 
 exit 0
 

@@ -11,6 +11,11 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
+@app.route('/')
+def root():
+    return 'ok'
+
+
 @app.route('/_ok')
 def healthcheck():
     return 'ok'
@@ -45,4 +50,8 @@ def start_garden():
             line = p.stdout.readline()
             yield 'data: {}\n\n'.format(line.decode(sys.stdout.encoding).strip('\x00'))
 
-    return Response(event_stream(), mimetype='text/event-stream')
+    return Response(event_stream(), mimetype='text/event-stream', headers={
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'X-Accel-Buffering': 'no'
+    })
