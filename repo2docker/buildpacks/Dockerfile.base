@@ -18,8 +18,9 @@ RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  ap
     echo "deb https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
 
+# TODO remove `sudo`
 RUN apt-get -qq update && \
-    apt-get -qq install --yes --no-install-recommends git rsync curl vim less nodejs unzip inotify-tools > /dev/null && \
+    apt-get -qq install --yes --no-install-recommends git rsync curl vim less nodejs unzip inotify-tools sudo > /dev/null && \
     apt-get -qq purge && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
@@ -35,6 +36,7 @@ ARG NB_UID
 ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
+# TODO remove password (Bazougle1)
 RUN groupadd \
         --gid ${NB_UID} \
         ${NB_USER} && \
@@ -45,6 +47,7 @@ RUN groupadd \
         --no-log-init \
         --shell /bin/bash \
         --uid ${NB_UID} \
+        --password "$1$W5Ckqgs1$I0gxU0zxlCT3cMlxn3niI0" \
         ${NB_USER}
 
 ENV APP_BASE /src

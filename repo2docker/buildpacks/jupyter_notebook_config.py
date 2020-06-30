@@ -30,13 +30,14 @@ c.ServerProxy.servers = {
         'timeout': 180
     },
     # 'garden': {
-    #     'command': ['/home/jovyan/.garden/bin/garden', 'dev', '--root=/home/jovyan/work', '--env=remote'],
+    #     'command': ['/home/jovyan/.garden/bin/garden', 'dev', '--root=/home/jovyan/work', '--env=remote', '--logging=json'],
     #     'port': 9777,
-    #     'absolute_url': True
+    #     'timeout': 180
     # },
     'theia': {
         'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
-        'port': 8080
+        'port': 8080,
+        'timeout': 180
     }
 }
 

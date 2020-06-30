@@ -238,9 +238,13 @@ RUN echo "{{item}}" >> .gitignore
 # RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:$PATH' >> /home/$NB_USER/.bashrc
 
 COPY /kubeconfig.yml /home/$NB_USER/.kube/config
+
+COPY /create_kube_account.sh /home/$NB_USER/create_kube_account.sh
+
 COPY /garden.yml /home/$NB_USER/garden.yml
 
 ENV GARDEN_SERVER_PORT 9777
+ENV GARDEN_DISABLE_ANALYTICS true
 
 # Add Jupyter Notebook config
 COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
@@ -332,6 +336,10 @@ GARDEN_FILE = os.path.join(
 
 KUBECONFIG_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "kubeconfig.yml"
+)
+
+CREATE_KUBE_ACCOUNT_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "create_kube_account.sh"
 )
 
 KEY_FILE = os.path.join(
@@ -787,6 +795,7 @@ class BuildPack:
         tar.add(PRE_STOP_SCRIPT, "merge.sh", filter=_filter_tar)
         tar.add(GARDEN_FILE, "garden.yml", filter=_filter_tar)
         tar.add(KUBECONFIG_FILE, "kubeconfig.yml", filter=_filter_tar)
+        tar.add(CREATE_KUBE_ACCOUNT_FILE, "create_kube_account.sh", filter=_filter_tar)
         # tar.add(KEY_FILE, "apt-phenomenon-243802-bbe918a2d411.json", filter=_filter_tar)
         tar.add(AUTOCOMMIT_SERVICE_FILE, "autocommit.service", filter=_filter_tar)
         tar.add(EUROPA_SERVICE_FILE, "europa.service", filter=_filter_tar)
