@@ -193,7 +193,8 @@ LABEL {{k}}="{{v}}"
 {%- endfor %}
 
 # We always want containers to run as non-root
-USER ${NB_USER}
+# TODO uncomment after debugging
+# USER ${NB_USER}
 
 {% if post_build_scripts -%}
 # Make sure that postBuild scripts are marked executable before executing them

@@ -36,7 +36,6 @@ ARG NB_UID
 ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
-# TODO remove password (Bazougle1)
 RUN groupadd \
         --gid ${NB_UID} \
         ${NB_USER} && \
@@ -47,8 +46,10 @@ RUN groupadd \
         --no-log-init \
         --shell /bin/bash \
         --uid ${NB_UID} \
-        --password "$1$W5Ckqgs1$I0gxU0zxlCT3cMlxn3niI0" \
         ${NB_USER}
+
+# TODO remove password (Bazougle1)
+RUN echo "${NB_USER}:Bazougle1" | chpasswd
 
 ENV APP_BASE /src
 ENV NPM_DIR ${APP_BASE}/npm
