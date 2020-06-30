@@ -50,6 +50,7 @@ RUN groupadd \
 
 # TODO remove password (Bazougle1)
 RUN echo "${NB_USER}:Bazougle1" | chpasswd
+RUN echo "${NB_USER} ALL=(ALL)  ALL" >> /etc/sudoers
 
 ENV APP_BASE /src
 ENV NPM_DIR ${APP_BASE}/npm
