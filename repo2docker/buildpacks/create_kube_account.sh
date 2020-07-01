@@ -11,6 +11,18 @@ metadata:
   name: $USER_NAME
 spec:
   subjects:
+  - kind: User
+    name: $USER_NAME
+    apiGroup: rbac.authorization.k8s.io
+EOF
+
+cat <<EOF | kubectl apply -f -
+apiVersion: tenancy.kiosk.sh/v1alpha1
+kind: Account
+metadata:
+  name: $USER_NAME
+spec:
+  subjects:
   - kind: ServiceAccount
     name: $USER_NAME
     namespace: kiosk

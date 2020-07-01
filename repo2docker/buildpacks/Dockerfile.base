@@ -18,17 +18,30 @@ RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  ap
     echo "deb https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
 
-# TODO remove `sudo`
+RUN apt-get -qq update && \
+    apt-get -qq install --yes --no-install-recommends git rsync curl less nodejs unzip inotify-tools > /dev/null && \
+    apt-get -qq purge && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/*
+
+
+############################################################################
+# TODO remove - for debugging during development only
 RUN apt-get -qq update && \
     apt-get -qq install --yes --no-install-recommends git rsync curl vim less nodejs unzip inotify-tools sudo > /dev/null && \
     apt-get -qq purge && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
+############################################################################
 
-# Install kubectl
+
+# Install kubectl as root
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
+
+COPY kubeconfig.yml /root/.kube/config
+# COPY create_kube_account.sh /roo/create_kube_account.sh
 
 # Set up user
 ARG NB_USER
@@ -48,9 +61,14 @@ RUN groupadd \
         --uid ${NB_UID} \
         ${NB_USER}
 
+
+############################################################################
 # TODO remove password (Bazougle1)
 RUN echo "${NB_USER}:Bazougle1" | chpasswd
+RUN usermod -aG sudo ${NB_USER}
 RUN echo "${NB_USER} ALL=(ALL)  ALL" >> /etc/sudoers
+############################################################################
+
 
 ENV APP_BASE /src
 ENV NPM_DIR ${APP_BASE}/npm
@@ -76,25 +94,39 @@ RUN bash /tmp/install-miniconda.bash && \
 #     # conda clean --all -f -y && \
 #     # conda list -p ${NB_PYTHON_PREFIX}
 
-USER ${NB_USER}
+# Install GCloud as root
+############################################################################
+# TODO - replace with more restrictive key
+COPY apt-phenomenon-243802-bbe918a2d411.json /root/apt-phenomenon-243802-bbe918a2d411.json
+############################################################################
 
-RUN npm config --global set prefix ${NPM_DIR}
-
-# Install GCloud
-# TODO
-COPY apt-phenomenon-243802-bbe918a2d411.json /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
-
-ENV GCLOUD_SERVICE_KEY /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
+ENV GCLOUD_SERVICE_KEY /root/apt-phenomenon-243802-bbe918a2d411.json
 ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
 ENV GOOGLE_COMPUTE_ZONE us-central1-b
 
-RUN mkdir /home/$NB_USER/gcloud && \
-    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
-    /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
+RUN mkdir /root/gcloud && \
+    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /root/gcloud && \
+    /root/gcloud/google-cloud-sdk/install.sh --quiet && \
+    /root/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/root/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
     # shows warning for unknown reason
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
-    /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
+    /root/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
+    /root/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
+
+# Install Garden as root
+# RUN curl -sL https://get.garden.io/install.sh | bash
+# using a customized version
+RUN mkdir -p /root/.garden/bin && \
+    mkdir -p /tmp/garden-install
+
+COPY garden-v0.11.14-linux-amd64.tar.gz /tmp/garden-install/garden-v0.11.14-linux-amd64.tar.gz
+
+RUN cd /tmp/garden-install && \
+    tar -xzf garden-v0.11.14-linux-amd64.tar.gz && \
+    mv linux-amd64/* /root/.garden/bin/
+
+USER ${NB_USER}
+
+RUN npm config --global set prefix ${NPM_DIR}
 
 # Install Theia
 RUN npm install -g yarn
@@ -106,20 +138,11 @@ WORKDIR /home/$NB_USER
 RUN yarn install --network-timeout 100000 && \
     yarn theia build
 
-# Install Garden
-# RUN curl -sL https://get.garden.io/install.sh | bash
-# using a customized version
-RUN mkdir -p /home/$NB_USER/.garden/bin && \
-    mkdir -p /tmp/garden-install
+# RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:$PATH' >> /home/$NB_USER/.bashrc
+# ENV PATH "$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:${PATH}"
+# restrict access
+RUN echo 'export PATH=/root/.garden/bin:/home/$NB_USER/node_modules/.bin:$PATH' >> /home/$NB_USER/.bashrc
+ENV PATH "/root/.garden/bin:/home/$NB_USER/node_modules/.bin:${PATH}"
 
-COPY garden-v0.11.14-linux-amd64.tar.gz /tmp/garden-install/garden-v0.11.14-linux-amd64.tar.gz
-
-RUN cd /tmp/garden-install && \
-    tar -xzf garden-v0.11.14-linux-amd64.tar.gz && \
-    mv linux-amd64/* /home/$NB_USER/.garden/bin/
-
-RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:$PATH' >> /home/$NB_USER/.bashrc
-ENV PATH "$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:${PATH}"
-
-# RUN pip install jupyter-server-proxy
+RUN pip install jupyter-server-proxy
 # WORKDIR ${REPO_DIR}

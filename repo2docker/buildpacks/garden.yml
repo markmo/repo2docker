@@ -1,12 +1,9 @@
 kind: Project
-name: demo-project
+name: ${local.env.REPO_NAME}
 defaultEnvironment: "remote"
 environments:
-  - name: local
   - name: remote
 providers:
-  - name: local-kubernetes
-    environments: [local]
   - name: kubernetes
     environments: [remote]
     context: gke_apt-phenomenon-243802_us-central1-b_devsheds

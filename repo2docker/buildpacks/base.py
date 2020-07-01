@@ -36,9 +36,6 @@ ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
-# Use bash as default shell, rather than sh
-ENV SHELL /bin/bash
-
 # # Install kubectl
 # RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
 #     chmod +x ./kubectl && \
@@ -50,8 +47,10 @@ ARG NB_UID
 ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
-# TODO remove
-RUN usermod -aG sudo ${NB_USER}
+# Use bash as default shell, rather than sh
+RUN chsh -s /bin/rbash ${NB_USER}
+RUN chattr +i /home/${NB_USER}/.bashrc
+# ENV SHELL /bin/rbash
 
 # RUN groupadd \
 #         --gid ${NB_UID} \
@@ -193,8 +192,7 @@ LABEL {{k}}="{{v}}"
 {%- endfor %}
 
 # We always want containers to run as non-root
-# TODO uncomment after debugging
-# USER ${NB_USER}
+USER ${NB_USER}
 
 {% if post_build_scripts -%}
 # Make sure that postBuild scripts are marked executable before executing them
@@ -238,9 +236,9 @@ RUN echo "{{item}}" >> .gitignore
 
 # RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:$PATH' >> /home/$NB_USER/.bashrc
 
-COPY /kubeconfig.yml /home/$NB_USER/.kube/config
+# COPY /kubeconfig.yml /home/$NB_USER/.kube/config
 
-COPY /create_kube_account.sh /home/$NB_USER/create_kube_account.sh
+# COPY /create_kube_account.sh /home/$NB_USER/create_kube_account.sh
 
 COPY /garden.yml /home/$NB_USER/garden.yml
 
@@ -296,9 +294,6 @@ ENTRYPOINT ["/usr/local/bin/repo2docker-entrypoint"]
 
 # Specify the default command to run
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0"]
-
-# TODO remove
-USER root
 
 {% if appendix -%}
 # Appendix:
