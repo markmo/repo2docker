@@ -25,13 +25,13 @@ c.NotebookApp.tornado_settings = {
 
 c.ServerProxy.servers = {
     'europa': {
-        'command': ['python3', '/home/jovyan/europa/wsgi.py'],
+        'command': ['python3', '/opt/europa/wsgi.py'],
         'port': 9003,
         'timeout': 180
     },
     'theia': {
-        'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=8080', '--inspect'],
-        'port': 8080,
+        'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=devsheds.ngrok.io', '--port=9004', '--inspect'],
+        'port': 9004,
         'timeout': 180
     }
 }

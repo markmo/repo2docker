@@ -49,7 +49,7 @@ ENV HOME /home/${NB_USER}
 
 # Use bash as default shell, rather than sh
 RUN chsh -s /bin/rbash ${NB_USER}
-RUN chattr +i /home/${NB_USER}/.bashrc
+# RUN chattr +i /home/${NB_USER}/.bashrc
 # ENV SHELL /bin/rbash
 
 # RUN groupadd \
@@ -191,6 +191,36 @@ RUN chown -R ${NB_USER}:${NB_USER} ${REPO_DIR} && \
 LABEL {{k}}="{{v}}"
 {%- endfor %}
 
+# # Add Jupyter Notebook config
+# COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
+
+# # Install autocommit service
+# COPY /autocommit.sh /home/$NB_USER/autocommit.sh
+# RUN mkdir -p /home/$NB_USER/.config/systemd/user
+# COPY /autocommit.service /home/$NB_USER/.config/systemd/user/autocommit.service
+# # RUN chmod 644 /home/$NB_USER/.config/systemd/user/autocommit.service
+
+# # Add scripts
+# COPY /fetch.sh /home/$NB_USER/fetch.sh
+# COPY /merge.sh /home/$NB_USER/merge.sh
+
+# # Install Europa
+# COPY /europa/ /home/$NB_USER/europa/
+# RUN python3 -m pip install Flask flask-cors gevent gevent-ws
+# COPY /europa.service /home/$NB_USER/.config/systemd/user/europa.service
+
+# # Install Theia
+# RUN npm install -g yarn
+# COPY /package.json /home/$NB_USER/package.json
+
+# WORKDIR /home/$NB_USER
+# # Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
+# RUN yarn install --network-timeout 100000 && \
+#     yarn theia build
+# ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
+
+RUN pip install jupyter-server-proxy
+
 # We always want containers to run as non-root
 USER ${NB_USER}
 
@@ -245,35 +275,6 @@ COPY /garden.yml /home/$NB_USER/garden.yml
 ENV GARDEN_SERVER_PORT 9777
 ENV GARDEN_DISABLE_ANALYTICS true
 
-# Add Jupyter Notebook config
-COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
-
-# Install autocommit service
-COPY /autocommit.sh /home/$NB_USER/autocommit.sh
-RUN mkdir -p /home/$NB_USER/.config/systemd/user
-COPY /autocommit.service /home/$NB_USER/.config/systemd/user/autocommit.service
-# RUN chmod 644 /home/$NB_USER/.config/systemd/user/autocommit.service
-
-# Add scripts
-COPY /fetch.sh /home/$NB_USER/fetch.sh
-COPY /merge.sh /home/$NB_USER/merge.sh
-
-# Install Europa
-COPY /europa/ /home/$NB_USER/europa/
-RUN python3 -m pip install Flask flask-cors gevent gevent-ws
-COPY /europa.service /home/$NB_USER/.config/systemd/user/europa.service
-
-# # Install Theia
-# RUN npm install -g yarn
-# COPY /package.json /home/$NB_USER/package.json
-
-# WORKDIR /home/$NB_USER
-# # Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
-# RUN yarn install --network-timeout 100000 && \
-#     yarn theia build
-# ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
-
-RUN pip install jupyter-server-proxy
 WORKDIR ${REPO_DIR}
 
 # see https://community.theia-ide.org/t/need-help-updating-theia-core-and-deploying-it-to-a-docker-container/648/20
@@ -286,7 +287,7 @@ RUN git config --global user.name "europanb"
 
 ARG GIT_BRANCH
 ENV GIT_BRANCH ${GIT_BRANCH}
-ENV PYTHONPATH /home/${NB_USER}/europa:$PYTHONPATH
+# ENV PYTHONPATH /home/${NB_USER}/europa:$PYTHONPATH
 
 # Add entrypoint
 COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint

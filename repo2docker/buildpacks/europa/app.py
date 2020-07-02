@@ -69,11 +69,14 @@ def garden_status():
     })
 
 
+# method must be GET when using SSE
 @app.route('/start-garden', methods=['GET'])
 @cross_origin()
 def start_garden():
     app.logger.info('/start-garden called')
-    p = subprocess.Popen(['garden', 'dev', '--logger-type=json'],
+    repo_name = request.args.get('repo_name')
+    os.environ['REPO_NAME'] = repo_name;
+    p = subprocess.Popen(['/root/.garden/bin/garden', 'dev', '--logger-type=json'],
         cwd='/home/jovyan/work',
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE

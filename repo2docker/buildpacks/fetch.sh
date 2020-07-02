@@ -37,10 +37,11 @@ git commit -m "auto commit"
 git push origin "${branch}"
 
 
+# systemd not available in a docker container
 ## Autocommit
 
-systemctl --user enable autocommit.service
-systemctl --user start autocommit.service
+# systemctl --user enable autocommit.service
+# systemctl --user start autocommit.service
 
 
 ## Europa API

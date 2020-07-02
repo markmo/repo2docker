@@ -1,9 +1,12 @@
 [Unit]
 Description=Europa service
+After=syslog.target
 
 [Service]
 Type=simple
-ExecStart=python3 /home/jovyan/europa/wsgi.py
+User=root
+ExecStart=python3 /root/europa/wsgi.py
+Restart=always
 
 [Install]
 WantedBy=multi.user.target
