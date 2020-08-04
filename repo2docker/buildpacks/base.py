@@ -28,7 +28,8 @@ TEMPLATE = r"""
 
 # RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
 #     locale-gen
-FROM markmo/europabase
+FROM gcr.io/apt-phenomenon-243802/europabase:0.2.3
+# FROM markmo/europabase
 
 USER root
 
@@ -219,7 +220,9 @@ LABEL {{k}}="{{v}}"
 #     yarn theia build
 # ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
 
-RUN pip install jupyter-server-proxy
+# RUN pip install jupyter-server-proxy
+COPY /garden.yml /home/$NB_USER/garden.yml
+RUN chown $NB_USER:$NB_USER /home/$NB_USER/garden.yml
 
 # We always want containers to run as non-root
 USER ${NB_USER}
@@ -239,11 +242,11 @@ ENV R2D_ENTRYPOINT "{{ start_script }}"
 {% endif -%}
 
 # Append ignore files
-{% if ignore_files -%}
-{% for item in ignore_files -%}
-RUN echo "{{item}}" >> .gitignore
-{% endfor -%}
-{% endif -%}
+# {% if ignore_files -%}
+# {% for item in ignore_files -%}
+# RUN echo "{{item}}" >> .gitignore
+# {% endfor -%}
+# {% endif -%}
 
 # # Install GCloud
 # # TODO
@@ -270,7 +273,7 @@ RUN echo "{{item}}" >> .gitignore
 
 # COPY /create_kube_account.sh /home/$NB_USER/create_kube_account.sh
 
-COPY /garden.yml /home/$NB_USER/garden.yml
+# COPY /garden.yml /home/$NB_USER/garden.yml
 
 ENV GARDEN_SERVER_PORT 9777
 ENV GARDEN_DISABLE_ANALYTICS true
@@ -280,7 +283,6 @@ WORKDIR ${REPO_DIR}
 # see https://community.theia-ide.org/t/need-help-updating-theia-core-and-deploying-it-to-a-docker-container/648/20
 # https://github.com/eclipse-theia/theia/blob/fc49b2c3b8a690ba5b94e1fd48cf17469b51057d/packages/plugin-ext/src/main/common/webview-protocol.ts#L17-L27
 # https://github.com/eclipse-theia/theia/blob/cf86e86857c45ab82366508cd270d217d6d66b04/packages/plugin-ext/src/main/browser/webview/webview-environment.ts#L33
-ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT localhost
 
 RUN git config --global user.email "jovyan@europanb.com"
 RUN git config --global user.name "europanb"
@@ -288,6 +290,14 @@ RUN git config --global user.name "europanb"
 ARG GIT_BRANCH
 ENV GIT_BRANCH ${GIT_BRANCH}
 # ENV PYTHONPATH /home/${NB_USER}/europa:$PYTHONPATH
+# TODO update for prod
+# fails to connect (yet I can from within the pod)
+# 0.0.0.0:9004 failed as well
+# maybe related to insecure (http) endpoint
+# ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT localhost:9004
+# 404
+# ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT jupyterhub.europanb.online
+# ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT app.europanb.online/jupyterhub
 
 # Add entrypoint
 COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint

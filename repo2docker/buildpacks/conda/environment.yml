@@ -10,3 +10,4 @@ dependencies:
   - flask-cors
   - gevent
   - gevent-websocket
+  - python-language-server

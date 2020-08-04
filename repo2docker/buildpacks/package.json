@@ -11,21 +11,28 @@
   },
   "private": true,
   "dependencies": {
+    "@theia/callhierarchy": "latest",
     "@theia/editor-preview": "latest",
     "@theia/file-search": "latest",
     "@theia/getting-started": "latest",
     "@theia/git": "latest",
     "@theia/json": "latest",
+    "@theia/languages": "latest",
     "@theia/markers": "latest",
+    "@theia/merge-conflicts": "latest",
     "@theia/messages": "latest",
+    "@theia/mini-browser": "latest",
     "@theia/monaco": "latest",
     "@theia/navigator": "latest",
     "@theia/outline-view": "latest",
     "@theia/plugin-ext-vscode": "latest",
     "@theia/preferences": "latest",
     "@theia/preview": "latest",
+    "@theia/python": "latest",
     "@theia/search-in-workspace": "latest",
     "@theia/terminal": "latest",
+    "@theia/typescript": "latest",
+    "typescript": "latest",
     "@theia/vsx-registry": "latest"
   },
   "resolutions": {
@@ -109,6 +116,6 @@
     "vscode-builtin-xml": "https://github.com/theia-ide/vscode-builtin-extensions/releases/download/v1.39.1-prel/xml-1.39.1-prel.vsix",
     "vscode-builtin-yaml": "https://github.com/theia-ide/vscode-builtin-extensions/releases/download/v1.39.1-prel/yaml-1.39.1-prel.vsix",
     "vscode-editorconfig": "https://github.com/theia-ide/editorconfig-vscode/releases/download/v0.14.4/EditorConfig-0.14.4.vsix",
-    "vscode-python": "https://github.com/microsoft/vscode-python/releases/download/2020.1.58038/ms-python-release.vsix"
+    "vscode-python": "https://github.com/microsoft/vscode-python/releases/download/2020.7.96456/ms-python-release.vsix"
   }
 }

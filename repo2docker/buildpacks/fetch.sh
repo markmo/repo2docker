@@ -5,25 +5,38 @@
 # [`appendix`](https://binderhub.readthedocs.io/en/latest/reference/app.html?highlight=c.BinderHub.appendix%20#binderhub.app.BinderHub) 
 # feature of BinderHub. 
 
-cd "${REPO_DIR}"
+repo_dir=${1:-$REPO_DIR}
+binder_repo_url=${2:-$BINDER_REPO_URL}
+jupyterhub_user=${3:-$JUPYTERHUB_USER}
+original_branch=${BINDER_REQUEST##*/}
+git_branch=${4:-$original_branch}
+
+echo "Args:"
+echo "repo_dir=${repo_dir}"
+echo "binder_repo_url=${binder_repo_url}"
+echo "jupyterhub_user=${jupyterhub_user}"
+echo "original_branch=${original_branch}"
+echo "git_branch=${git_branch}"
+
+cd "${repo_dir}"
 
 # update oauth token
-git remote set-url origin "${BINDER_REPO_URL}"
+git remote set-url origin "${binder_repo_url}"
 
-jupyterhub_user="${JUPYTERHUB_USER}"
+jupyterhub_user="${jupyterhub_user}"
 
 # see https://stackoverflow.com/questions/3162385/how-to-split-a-string-in-shell-and-get-the-last-field
 branch="europa-${jupyterhub_user##*-}"
 
 git checkout -b "${branch}"
 
-remote_branch_exists=$(git ls-remote --refs -q "${BINDER_REPO_URL}" "${branch}" | wc -l)
+remote_branch_exists=$(git ls-remote --refs -q "${binder_repo_url}" "${branch}" | wc -l)
 if [ "${remote_branch_exists}" == "1" ]; then
     git pull origin "${branch}"
 else
     # `GIT_BRANCH` is the original branch
-    git pull origin "${GIT_BRANCH}"
-    git merge "${GIT_BRANCH}"
+    git pull origin "${git_branch}"
+    git merge "${git_branch}"
 fi
 
 

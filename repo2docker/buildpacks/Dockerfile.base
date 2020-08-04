@@ -19,7 +19,7 @@ RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  ap
     echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
 
 RUN apt-get -qq update && \
-    apt-get -qq install --yes --no-install-recommends git rsync curl less nodejs unzip inotify-tools > /dev/null && \
+    apt-get -qq install --yes --no-install-recommends git rsync curl less nodejs unzip inotify-tools supervisor > /dev/null && \
     apt-get -qq purge && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
@@ -98,17 +98,21 @@ RUN groupadd \
         --shell /bin/bash \
         --uid ${NB_UID} \
         ${NB_USER} && \
-    groupadd \
-        --gid 1005 \
-        europa && \
-    usermod -a -G europa jovyan && \
-    usermod -a -G europa root
+    echo "Defaults secure_path=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/home/${NB_USER}\"" >> /etc/sudoers && \
+    echo "Defaults env_keep += \"BINDER_REPO_URL BINDER_REQUEST CONDA_DIR CONDA_PROFILE JUPYTERHUB_USER KERNEL_PYTHON_PREFIX NB_PYTHON_PREFIX REPO_DIR\"" >> /etc/sudoers && \
+    echo "${NB_USER} ALL=(ALL)  ALL" >> /etc/sudoers && \
+    echo "${NB_USER} ALL=(root) NOPASSWD: /bin/bash -i python /root/europa/wsgi.py, /usr/bin/supervisord" >> /etc/sudoers
+    # groupadd \
+    #     --gid 1005 \
+    #     europa && \
+    # usermod -a -G europa jovyan && \
+    # usermod -a -G europa root
 
 ############################################################################
-# TODO remove password (Bazougle1)
-RUN echo "${NB_USER}:Bazougle1" | chpasswd
+# TODO remove password (RyBB5bb64VMZMEbVnEmu)
+RUN echo "${NB_USER}:RyBB5bb64VMZMEbVnEmu" | chpasswd
 RUN usermod -aG sudo ${NB_USER}
-RUN echo "${NB_USER} ALL=(ALL)  ALL" >> /etc/sudoers
+# RUN echo "${NB_USER} ALL=(ALL)  ALL" >> /etc/sudoers
 ############################################################################
 
 ENV CONDA_DIR ${APP_BASE}/conda
@@ -156,7 +160,11 @@ RUN ${CONDA_DIR}/bin/conda init bash
 # " >> /root/.bashrc
 
 # Install Europa
-COPY europa/ /opt/europa/
+# COPY europa/ /opt/europa/
+COPY europa/ /root/europa/
+COPY start_europa.sh /root/
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN mkdir -p /var/log/supervisor
 # depends on: miniconda install
 # move to requirements.yaml
 # RUN python3 -m pip install Flask flask-cors gevent gevent-ws
@@ -165,7 +173,7 @@ COPY europa/ /opt/europa/
 # COPY europa.service /etc/systemd/system/europa.service
 # RUN systemctl enable europa
 # COPY scripts/europa /etc/init.d/europa
-RUN chown -R root:europa /opt/europa
+# RUN chown -R root:europa /opt/europa
 
 # Install jupyter-server-proxy as root
 # depends on: miniconda install
@@ -196,6 +204,10 @@ COPY autocommit.sh /home/$NB_USER/autocommit.sh
 # depends on: jovyan user setup
 COPY fetch.sh /home/$NB_USER/fetch.sh
 COPY merge.sh /home/$NB_USER/merge.sh
+RUN chmod +x /home/$NB_USER/fetch.sh && \
+    chmod +x /home/$NB_USER/merge.sh && \
+    chmod +x /home/$NB_USER/autocommit.sh
+    # chown ${NB_USER}:${NB_USER} /home/$NB_USER/merge.sh
 
 ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
@@ -222,4 +234,4 @@ RUN yarn install --network-timeout 100000 && \
 
 # RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:$PATH' >> /home/$NB_USER/.bashrc
 # ENV PATH "$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:${PATH}"
-ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
+ENV PATH "/home/$NB_USER:/home/$NB_USER/node_modules/.bin:${PATH}"

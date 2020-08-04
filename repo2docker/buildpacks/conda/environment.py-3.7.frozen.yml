@@ -112,5 +112,6 @@ dependencies:
   - flask-cors
   - gevent
   - gevent-websocket
+  - python-language-server
 prefix: /opt/conda/envs/r2d
 

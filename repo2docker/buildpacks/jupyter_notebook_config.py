@@ -14,27 +14,48 @@ c.NotebookApp.port = 8888
 c.NotebookApp.allow_origin = '*'
 # Cache-Control - prevent https://github.com/nteract/nteract/issues/3850
 c.NotebookApp.tornado_settings = {
+  'cookie_options': {
+    'samesite': 'none'
+  },
   'headers': {
-    'Content-Security-Policy': "frame-ancestors 'self' https://*.atlassian.net https://bitbucket.org https://*.bitbucket.org https://*.ngrok.io https://*.europanb.net https://*.europanb.online https://*.devsheds.io https://*.devsheds.net https://*.devsheds.online http://localhost:5000",
+    'Content-Security-Policy': "frame-ancestors 'self' https://*.atlassian.net https://bitbucket.org https://*.bitbucket.org https://*.ngrok.io https://*.europanb.net https://*.europanb.online https://app.europanb.online https://binderhub.europanb.online https://jupyterhub.europanb.online https://*.devsheds.io https://*.devsheds.net https://*.devsheds.online http://localhost:5000",
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrftoken, ETag',
     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
     'Cache-Control': 'no-cache'
   }
 }
+# Unfortunately, only Python 3.8 has support for setting samesite cookies in the stdlib. This is easily patched (Morsel._reserved['samesite'] = 'SameSite'), but needing a patch is never great.
+c.NotebookApp.cookie_options = {
+    'samesite': 'none'
+}
+
+
+def fix_webview_url(path):
+    try:
+        i = path.index('/webview')
+        return path[i:]
+    except:
+        return path
+
 
 c.ServerProxy.servers = {
-    'europa': {
-        'command': ['python3', '/opt/europa/wsgi.py'],
-        'port': 9003,
-        'timeout': 180
-    },
+    # initiated by supervisord instead; supervisord is initiated by the kubespawner post-start script
+    # 'europa': {
+    #     'command': ['sudo', '/bin/bash', '-i', 'python', '/root/europa/wsgi.py'],
+    #     # 'command': ['sudo', '/usr/bin/supervisord', '-c', '/etc/supervisor/conf.d/supervisord.conf'],
+    #     'port': 9003,
+    #     'timeout': 180
+    # },
     'theia': {
-        'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=devsheds.ngrok.io', '--port=9004', '--inspect'],
+        'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=9004', '--inspect'],
         'port': 9004,
-        'timeout': 180
+        'absolute_url': False,
+        'timeout': 180,
+        'mappath': fix_webview_url
     }
 }
+
 
 def commit_changes(model, os_path, contents_manager, **kwargs):
     # while popen is a non-blocking function (meaning you can continue 
