@@ -14,6 +14,7 @@ then
     exit 1
 fi
 
+/bin/bash ./set_base_version.sh "${PROFILE}"
 /bin/sh ./bump_version.sh
 /bin/bash ./set_profile.sh "${PROFILE}"
 git add .
