@@ -18,21 +18,29 @@ RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  ap
     echo "deb https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
 
-# TODO `sudo` may be required to run the services api and supervisord
 RUN apt-get -qq update && \
-    apt-get -qq install --yes --no-install-recommends make build-essential libssl-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev > /dev/null && \
-    apt-get -qq install --yes --no-install-recommends git rsync curl vim less nodejs unzip inotify-tools supervisor sudo > /dev/null && \
+    apt-get -qq install --yes --no-install-recommends git rsync curl less nodejs unzip inotify-tools supervisor > /dev/null && \
     apt-get -qq purge && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install kubectl as root
-# RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
-#     chmod +x ./kubectl && \
-#     mkdir /root/.bin && \
-#     mv ./kubectl /root/.bin/kubectl
+############################################################################
+# TODO remove - for debugging during development only
+RUN apt-get -qq update && \
+    apt-get -qq install --yes --no-install-recommends git rsync curl vim less nodejs unzip inotify-tools sudo > /dev/null && \
+    apt-get -qq purge && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/*
+############################################################################
 
-# COPY kubeconfig.yml /root/.kube/config
+# Install kubectl as root
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
+    chmod +x ./kubectl && \
+    mkdir /root/.bin && \
+    mv ./kubectl /root/.bin/kubectl
+
+COPY kubeconfig.yml /root/.kube/config
+# COPY create_kube_account.sh /root/create_kube_account.sh
 
 ARG NB_USER
 ARG NB_UID
@@ -47,32 +55,36 @@ RUN npm config --global set prefix ${NPM_DIR}
 # Install gcloud as root
 ############################################################################
 # TODO - replace with more restrictive key
-# COPY apt-phenomenon-243802-bbe918a2d411.json /root/apt-phenomenon-243802-bbe918a2d411.json
+COPY apt-phenomenon-243802-bbe918a2d411.json /root/apt-phenomenon-243802-bbe918a2d411.json
 ############################################################################
 
-# ENV GCLOUD_SERVICE_KEY /root/apt-phenomenon-243802-bbe918a2d411.json
-# ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
-# ENV GOOGLE_COMPUTE_ZONE us-central1-b
+ENV GCLOUD_SERVICE_KEY /root/apt-phenomenon-243802-bbe918a2d411.json
+ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
+ENV GOOGLE_COMPUTE_ZONE us-central1-b
 
-# RUN mkdir /root/gcloud && \
-#     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /root/gcloud && \
-#     /root/gcloud/google-cloud-sdk/install.sh --quiet && \
-#     /root/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/root/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
-#     # shows warning for unknown reason
-#     /root/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
-#     /root/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
+RUN mkdir /root/gcloud && \
+    curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /root/gcloud && \
+    /root/gcloud/google-cloud-sdk/install.sh --quiet && \
+    /root/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/root/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
+    # shows warning for unknown reason
+    /root/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
+    /root/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
 
 # Install garden as root
+# RUN curl -sL https://get.garden.io/install.sh | bash
 # using a customized version
-# RUN mkdir -p /root/.garden/bin && \
-#     mkdir -p /tmp/garden-install
+RUN mkdir -p /root/.garden/bin && \
+    mkdir -p /tmp/garden-install
 
-# COPY garden-v0.11.14-linux-amd64.tar.gz /tmp/garden-install/garden-v0.11.14-linux-amd64.tar.gz
+COPY garden-v0.11.14-linux-amd64.tar.gz /tmp/garden-install/garden-v0.11.14-linux-amd64.tar.gz
 
-# RUN cd /tmp/garden-install && \
-#     tar -xzf garden-v0.11.14-linux-amd64.tar.gz && \
-#     mv linux-amd64/* /root/.garden/bin/ && \
-#     chown root:root -R /root/.garden
+RUN cd /tmp/garden-install && \
+    tar -xzf garden-v0.11.14-linux-amd64.tar.gz && \
+    mv linux-amd64/* /root/.garden/bin/ && \
+    chown root:root -R /root/.garden
+
+# ENV USER ${NB_USER}
+# ENV HOME /home/${NB_USER}
 
 # Set up notebook user and groups
 RUN groupadd \
@@ -86,17 +98,21 @@ RUN groupadd \
         --shell /bin/bash \
         --uid ${NB_UID} \
         ${NB_USER} && \
-    # TODO the following may be required to run the services api and supervisord
     echo "Defaults secure_path=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/home/${NB_USER}\"" >> /etc/sudoers && \
     echo "Defaults env_keep += \"BINDER_REPO_URL BINDER_REQUEST CONDA_DIR CONDA_PROFILE JUPYTERHUB_USER KERNEL_PYTHON_PREFIX NB_PYTHON_PREFIX REPO_DIR\"" >> /etc/sudoers && \
     echo "${NB_USER} ALL=(ALL)  ALL" >> /etc/sudoers && \
     echo "${NB_USER} ALL=(root) NOPASSWD: /bin/bash -i python /root/europa/wsgi.py, /usr/bin/supervisord" >> /etc/sudoers
+    # groupadd \
+    #     --gid 1005 \
+    #     europa && \
+    # usermod -a -G europa jovyan && \
+    # usermod -a -G europa root
 
 ############################################################################
-# TODO the following may be required to run the services api and supervisord
 # TODO remove password (RyBB5bb64VMZMEbVnEmu)
 RUN echo "${NB_USER}:RyBB5bb64VMZMEbVnEmu" | chpasswd
 RUN usermod -aG sudo ${NB_USER}
+# RUN echo "${NB_USER} ALL=(ALL)  ALL" >> /etc/sudoers
 ############################################################################
 
 ENV CONDA_DIR ${APP_BASE}/conda
@@ -107,8 +123,7 @@ ENV KERNEL_PYTHON_PREFIX ${NB_PYTHON_PREFIX}
 ENV PATH ${NB_PYTHON_PREFIX}/bin:${NPM_DIR}/bin:${PATH}
 
 # restrict access
-RUN \
-    # echo 'export PATH=/root/.garden/bin:/root/gcloud/google-cloud-sdk/bin:/root/.bin:$PATH' >> /root/.bashrc && \
+RUN echo 'export PATH=/root/.garden/bin:/root/gcloud/google-cloud-sdk/bin:/root/.bin:$PATH' >> /root/.bashrc && \
     echo 'export PYTHONPATH=/root/europa' >> /root/.bashrc && \
     echo "export CONDA_DIR=${CONDA_DIR}" >> /root/.bashrc && \
     echo "export NB_PYTHON_PREFIX=${CONDA_DIR}/envs/notebook" >> /root/.bashrc && \
@@ -120,13 +135,10 @@ COPY conda/activate-conda.sh /etc/profile.d/activate-conda.sh
 COPY conda/environment.py-3.7.frozen.yml /tmp/environment.yml
 COPY conda/install-miniconda.bash /tmp/install-miniconda.bash
 RUN bash /tmp/install-miniconda.bash && \
-    rm /tmp/install-miniconda.bash /tmp/environment.yml
-    # the following is already done in the installer
-    # and getting "EnvironmentFileNotFound: '/{1}' file not found" prior to init
-    # CONDA_EXE="${CONDA_DIR}/bin/conda" && \
-    # $CONDA_EXE env update -p ${NB_PYTHON_PREFIX} -f "{1}" && \
-    # $CONDA_EXE clean --all -f -y && \
-    # $CONDA_EXE list -p ${NB_PYTHON_PREFIX}
+    rm /tmp/install-miniconda.bash /tmp/environment.yml && \
+    conda env update -p ${NB_PYTHON_PREFIX} -f "{1}" && \
+    conda clean --all -f -y && \
+    conda list -p ${NB_PYTHON_PREFIX}
 
 # uses HOME or USER env vars to determine user environment to update
 RUN ${CONDA_DIR}/bin/conda init bash
@@ -135,15 +147,43 @@ RUN ${CONDA_DIR}/bin/conda init bash
 # "EnvironmentLocationNotFound: Not a conda environment: /src/conda/envs/notebook"
 ENV CONDA_DEFAULT_ENV ${KERNEL_PYTHON_PREFIX}
 
+# add conda activation for root
+# RUN echo " \n\
+# __conda_setup="\$\('/src/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" \n\
+# if [ \$? -eq 0 ]; then \n\
+#     eval "\$__conda_setup" \n\
+# else \n\
+#     if [ -f "/src/conda/etc/profile.d/conda.sh" ]; then \n\
+#         . "/src/conda/etc/profile.d/conda.sh" \n\
+#     else \n\
+#         export PATH="/src/conda/bin:\$PATH" \n\
+#     fi \n\
+# fi \n\
+# unset __conda_setup \n\
+# " >> /root/.bashrc
+
 # Install Europa
+# COPY europa/ /opt/europa/
 COPY europa/ /root/europa/
 COPY start_europa.sh /root/
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /var/log/supervisor
+# depends on: miniconda install
+# move to requirements.yaml
+# RUN python3 -m pip install Flask flask-cors gevent gevent-ws
+
+# doesn't work with docker containers
+# COPY europa.service /etc/systemd/system/europa.service
+# RUN systemctl enable europa
+# COPY scripts/europa /etc/init.d/europa
+# RUN chown -R root:europa /opt/europa
 
 # Install jupyter-server-proxy as root
 # depends on: miniconda install
 RUN python3 -m pip install jupyter-server-proxy
+
+# applied to jovyan, so added to root's .bashrc above
+# ENV PYTHONPATH /root/europa
 
 RUN mkdir -p ${NPM_DIR} && \
     chown -R ${NB_USER}:${NB_USER} ${NPM_DIR}
@@ -156,6 +196,13 @@ COPY jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.
 # depends on: jovyan user setup
 COPY autocommit.sh /home/$NB_USER/autocommit.sh
 
+# doesn't work with docker containers
+# RUN mkdir -p /home/$NB_USER/.config/systemd/user
+# COPY autocommit.service /home/$NB_USER/.config/systemd/user/autocommit.service
+# TODO had an issue with this
+# RUN chmod 644 /home/$NB_USER/.config/systemd/user/autocommit.service
+# COPY scripts/autocommit /etc/init.d/autocommit
+
 # Add scripts
 # depends on: jovyan user setup
 COPY fetch.sh /home/$NB_USER/fetch.sh
@@ -163,6 +210,7 @@ COPY merge.sh /home/$NB_USER/merge.sh
 RUN chmod +x /home/$NB_USER/fetch.sh && \
     chmod +x /home/$NB_USER/merge.sh && \
     chmod +x /home/$NB_USER/autocommit.sh
+    # chown ${NB_USER}:${NB_USER} /home/$NB_USER/merge.sh
 
 ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
@@ -184,11 +232,9 @@ COPY package.json /home/$NB_USER/package.json
 WORKDIR /home/$NB_USER
 
 # Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
-# Set NODE_OPTIONS to avoid getting "JavaScript heap out of memory" errors
-RUN yarn install --network-timeout 100000 --cache-folder ./ycache && \
-    rm -rf ./ycache && \
-    NODE_OPTIONS="--max-old-space-size=4096" yarn theia build ; \
-    yarn theia download:plugins
+RUN yarn install --network-timeout 100000 && \
+    yarn theia build
 
-ENV THEIA_DEFAULT_PLUGINS=local-dir:/home/theia/plugins
-ENV PATH "${CONDA_DIR}/bin:/home/$NB_USER:/home/$NB_USER/node_modules/.bin:${PATH}"
+# RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:$PATH' >> /home/$NB_USER/.bashrc
+# ENV PATH "$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:/home/$NB_USER/node_modules/.bin:${PATH}"
+ENV PATH "/home/$NB_USER:/home/$NB_USER/node_modules/.bin:${PATH}"

@@ -113,5 +113,7 @@ dependencies:
   - gevent
   - gevent-websocket
   - python-language-server
+  - flake8
+  - autopep8
 prefix: /opt/conda/envs/r2d
 

@@ -63,6 +63,24 @@ git push origin "${branch}"
 # systemctl --user start europa.service
 
 
+# Set Kubeflow runtime settings for Elyra
+# TODO:
+# - replace password with user-specific password and 
+#   policy on bucket
+# - need to create bucket programmatically before spawning notebook server
+# - alternatively, given multi-user support in kfp is not quite there yet,
+#   set details from UI for a user-hosted kfp instance
+# elyra-metadata install runtimes --replace=true \
+#     --schema_name=kfp \
+#     --name=devsheds-kfp \
+#     --display_name="Kubeflow Pipeline" \
+#     --api_endpoint=https://kubeflow.europanb.online/pipeline \
+#     --cos_endpoint=https://minio.europanb.online \
+#     --cos_username=minio \
+#     --cos_password=minio123 \
+#     --cos_bucket=${jupyterhub_user}
+
+
 echo "Post-start script executed successfully" > "${HOME}"/poststart.log
 
 exit 0

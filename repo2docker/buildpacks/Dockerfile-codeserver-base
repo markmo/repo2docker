@@ -15,13 +15,15 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
 
 RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  apt-key add - && \
     DISTRO="bionic" && \
-    echo "deb https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
-    echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
+    echo "deb https://deb.nodesource.com/node_12.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
+    echo "deb-src https://deb.nodesource.com/node_12.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
+    curl -s https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo 'deb https://dl.yarnpkg.com/debian/ stable main' > /etc/apt/sources.list.d/yarn.list
 
 # TODO `sudo` may be required to run the services api and supervisord
 RUN apt-get -qq update && \
-    apt-get -qq install --yes --no-install-recommends make build-essential libssl-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev > /dev/null && \
-    apt-get -qq install --yes --no-install-recommends git rsync curl vim less nodejs unzip inotify-tools supervisor sudo > /dev/null && \
+    apt-get -qq install --yes --no-install-recommends make build-essential libx11-dev libxkbfile-dev libsecret-1-dev pkg-config > /dev/null && \
+    apt-get -qq install --yes --no-install-recommends git rsync curl vim less nodejs unzip inotify-tools supervisor sudo jq net-tools sudo yarn > /dev/null && \
     apt-get -qq purge && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
@@ -131,6 +133,14 @@ RUN bash /tmp/install-miniconda.bash && \
 # uses HOME or USER env vars to determine user environment to update
 RUN ${CONDA_DIR}/bin/conda init bash
 
+# https://github.com/conda/conda/issues/7980
+# attempt to fix "CommandNotFoundError" when opening a JupyterLab terminal
+RUN echo "export -f conda" >> /home/$NB_USER/.bashrc && \
+    echo "export -f __conda_activate" >> /home/$NB_USER/.bashrc && \
+    echo "export -f __conda_reactivate" >> /home/$NB_USER/.bashrc && \
+    echo "export -f __conda_hashr" >> /home/$NB_USER/.bashrc && \
+    echo "export -f __add_sys_prefix_to_path" >> /home/$NB_USER/.bashrc
+
 # Must come after miniconda installation, otherwise
 # "EnvironmentLocationNotFound: Not a conda environment: /src/conda/envs/notebook"
 ENV CONDA_DEFAULT_ENV ${KERNEL_PYTHON_PREFIX}
@@ -170,6 +180,34 @@ ENV HOME /home/${NB_USER}
 # uses HOME or USER env vars to determine user environment to update
 RUN ${CONDA_DIR}/bin/conda init bash
 
+# Install Code-server
+RUN echo "**** install code-server ****" && \
+    # npm install -g yarn && \
+    # if [ -z ${CODE_RELEASE+x} ]; then \
+    #     CODE_RELEASE=$(curl -sX GET "https://api.github.com/repos/cdr/code-server/releases/latest" \
+    #     | awk '/tag_name/{print $4;exit}' FS='[""]'); \
+    # fi && \
+    # CODE_VERSION=$(echo "$CODE_RELEASE" | awk '{print substr($1,2); }') && \
+    # yarn --production global add code-server@"$CODE_VERSION" && \
+    # yarn cache clean && \
+    # ln -s /node_modules/.bin/code-server /usr/bin/code-server && \
+    cd /opt && \
+    mkdir /opt/code-server && \
+    cd /opt/code-server && \
+    wget -qO- https://github.com/cdr/code-server/releases/download/3.4.1/code-server-3.4.1-linux-x86_64.tar.gz | tar zxvf - --strip-components=1 && \
+    echo "**** clean up ****" && \
+    apt-get purge --auto-remove -y \
+        build-essential \
+        libx11-dev \
+        libxkbfile-dev \
+        libsecret-1-dev \
+        pkg-config && \
+    apt-get clean && \
+    rm -rf \
+        /tmp/* \
+        /var/lib/apt/lists/* \
+        /var/tmp/*
+
 # used by kubespawner to determine which user to run the container as
 # https://jupyterhub-kubespawner.readthedocs.io/en/latest/spawner.html
 # "config c.KubeSpawner.uid = Union()"
@@ -177,18 +215,24 @@ RUN ${CONDA_DIR}/bin/conda init bash
 # container metadata is used."
 USER ${NB_USER}
 
-# Install Theia
-RUN npm install -g yarn
-COPY package.json /home/$NB_USER/package.json
+ENV PATH "/opt/code-server:/home/$NB_USER:/home/$NB_USER/node_modules/.bin:${PATH}"
+
+RUN mkdir -p /home/$NB_USER/.config/code-server && \
+    mkdir -p /home/$NB_USER/.local/share/code-server/User
+COPY ./code-server/config.yaml /home/jovyan/.config/code-server/config.yaml
+COPY ./code-server/User/settings.json /home/jovyan/.local/share/code-server/User/settings.json
+
+# latest version of `ms-python.python` extension not working with
+# code-server 3.4.1 (latest as of 2020-08-06)
+# https://github.com/microsoft/vscode-python/issues/12465
+RUN mkdir -p ~/.local/share/code-server/extensions && \
+    code-server --install-extension ms-python.python@2020.5.86806 --force
+
+# Install Elyra
+RUN python3 -m pip install --upgrade elyra && \
+    jupyter lab build
+
+# Save is currently broken
+# RUN jupyter labextension install jupyterlab-drawio
 
 WORKDIR /home/$NB_USER
-
-# Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
-# Set NODE_OPTIONS to avoid getting "JavaScript heap out of memory" errors
-RUN yarn install --network-timeout 100000 --cache-folder ./ycache && \
-    rm -rf ./ycache && \
-    NODE_OPTIONS="--max-old-space-size=4096" yarn theia build ; \
-    yarn theia download:plugins
-
-ENV THEIA_DEFAULT_PLUGINS=local-dir:/home/theia/plugins
-ENV PATH "${CONDA_DIR}/bin:/home/$NB_USER:/home/$NB_USER/node_modules/.bin:${PATH}"

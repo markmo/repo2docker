@@ -31,9 +31,12 @@ c.NotebookApp.cookie_options = {
 }
 
 
+# remove path prefix that proxies through the JupyterHub Proxy 
+# and jupyter-proxy-server
 def fix_webview_url(path):
     try:
         i = path.index('/webview')
+        print('Mapping path "{}" --> "{}"'.format(path, path[i:]))
         return path[i:]
     except:
         return path
@@ -47,12 +50,19 @@ c.ServerProxy.servers = {
     #     'port': 9003,
     #     'timeout': 180
     # },
+    # 'theia': {
+    #     'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=9004'],
+    #     'port': 9004,
+    #     'absolute_url': False,
+    #     'timeout': 180,
+    #     'mappath': fix_webview_url
+    # }
+    # code-server
     'theia': {
-        'command': ['yarn', 'start', '/home/jovyan/work', '--hostname=0.0.0.0', '--port=9004', '--inspect'],
+        'command': ['code-server', '--auth=none', '--bind-addr=0.0.0.0:9004', '--disable-telemetry', '/home/jovyan/work'],
         'port': 9004,
         'absolute_url': False,
         'timeout': 180,
-        'mappath': fix_webview_url
     }
 }
 
