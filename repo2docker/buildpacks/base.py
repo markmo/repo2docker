@@ -14,10 +14,8 @@ import xml.etree.ElementTree as ET
 from traitlets import Dict
 
 TEMPLATE = r"""
-# FROM gcr.io/apt-phenomenon-243802/repo2docker-base:0.0.4
-FROM gcr.io/apt-phenomenon-243802/repo2docker-codeserver-base:0.0.3
+FROM gcr.io/apt-phenomenon-243802/repo2docker-codeserver-base:0.0.4
 # FROM localhost:5000/repo2docker-codeserver-base:0.0.3
-# FROM markmo/europabase
 
 USER root
 

@@ -1,0 +1,35 @@
+# [START cloudbuild]
+steps:
+# Decrypt service account credentials file
+# - name: gcr.io/cloud-builders/gcloud
+#   args:
+#   - kms
+#   - decrypt
+#   - --ciphertext-file=secrets/apt-phenomenon-243802-bbe918a2d411.json.enc
+#   - --plaintext-file=secrets/apt-phenomenon-243802-bbe918a2d411.json
+#   - --location=global
+#   - --keyring=notebook-keyring
+#   - --key=notebook-key
+
+# This step builds the container image.
+# 'gcr.io/$PROJECT_ID/europa-client:$SHORT_SHA' to tag with commit id
+- name: 'gcr.io/cloud-builders/docker'
+  id: Build
+  args:
+  - 'build'
+  - '-t'
+  - 'gcr.io/$PROJECT_ID/repo2docker-codeserver:0.0.5'
+  - '.'
+
+# This step pushes the image to Container Registry
+# The PROJECT_ID and SHORT_SHA variables are automatically
+# replaced by Cloud Build.
+# 'gcr.io/$PROJECT_ID/europa-client:$SHORT_SHA' to tag with commit id
+- name: 'gcr.io/cloud-builders/docker'
+  id: Push
+  args:
+  - 'push'
+  - 'gcr.io/$PROJECT_ID/repo2docker-codeserver:0.0.5'
+
+  timeout: 1800s # 30 min
+# [END cloudbuild]

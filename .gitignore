@@ -35,3 +35,4 @@ test_file_text.txt
 \.vscode/
 
 tests/dockerfile_diff.sh
+repo2docker/buildpacks/apt-phenomenon-243802-bbe918a2d411.json
