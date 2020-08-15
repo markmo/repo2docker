@@ -7,7 +7,7 @@ then
 else
     name="-${PROFILE}"
 fi
-VERSION=$(cat VERSION)
+VERSION=$(cat repo2docker/buildpacks/profiles/${PROFILE}/VERSION)
 if [ "$VERSION" == "" ]
 then
     echo "Error"

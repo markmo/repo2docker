@@ -16,4 +16,5 @@ then
     echo "Error"
     exit 1
 fi
-sed -i -E "s/(FROM gcr\.io\/${PROJECT}\/repo2docker-)\w+-(base:)([0-9]+\.[0-9]+\.[0-9]+)/\1${name}\2${VERSION}/" repo2docker/buildpacks/base.py
+cp repo2docker/buildpacks/profiles/${PROFILE}/base.py repo2docker/buildpacks/base.py
+sed -i -E "s/(FROM gcr\.io\/${PROJECT}\/repo2docker-)\w+-(base:)(latest|[0-9]+\.[0-9]+\.[0-9]+)/\1${name}\2${VERSION}/" repo2docker/buildpacks/base.py

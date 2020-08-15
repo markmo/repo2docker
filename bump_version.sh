@@ -1,4 +1,6 @@
 #!/bin/sh
 
-bin/versionbump patch VERSION
-git add VERSION
+profile=${1}
+
+bin/versionbump patch repo2docker/buildpacks/profiles/${profile}/VERSION
+git add repo2docker/buildpacks/profiles/${profile}/VERSION

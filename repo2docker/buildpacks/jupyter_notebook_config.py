@@ -25,7 +25,9 @@ c.NotebookApp.tornado_settings = {
     'Cache-Control': 'no-cache'
   }
 }
-# Unfortunately, only Python 3.8 has support for setting samesite cookies in the stdlib. This is easily patched (Morsel._reserved['samesite'] = 'SameSite'), but needing a patch is never great.
+# Unfortunately, only Python 3.8 has support for setting samesite cookies 
+# in the stdlib. This is easily patched (Morsel._reserved['samesite'] = 
+# 'SameSite'), but needing a patch is never great.
 c.NotebookApp.cookie_options = {
     'samesite': 'none'
 }
