@@ -1,17 +1,25 @@
 #!/usr/bin/env bash
 
 PROFILE=${1}
+ENV=${2}
 if [ "${PROFILE}" == "" ] || [ "${PROFILE}" == "default" ]
 then
-    name=""
+    NAME=""
 else
-    name="-${PROFILE}"
+    NAME="-${PROFILE}"
 fi
-VERSION=$(cat repo2docker/buildpacks/profiles/${PROFILE}/VERSION)
+if [ "${ENV}" == "test" ]
+then
+    SUFFIX="-test"
+    VERSION=$(cat repo2docker/buildpacks/profiles/${PROFILE}/TEST-VERSION)
+else
+    SUFFIX=""
+    VERSION=$(cat repo2docker/buildpacks/profiles/${PROFILE}/VERSION)
+fi
 if [ "$VERSION" == "" ]
 then
     echo "Error"
     exit 1
 fi
 
-sed -i -E "s/(gcr\.io\/\\\$PROJECT_ID\/repo2docker).*:(latest|[0-9]+\.[0-9]+\.[0-9]+)/\1${name}:${VERSION}/g" cloudbuild.yaml
+sed -i -E "s/(gcr\.io\/\\\$PROJECT_ID\/repo2docker).*:(latest|[0-9]+\.[0-9]+\.[0-9]+)/\1${NAME}${SUFFIX}:${VERSION}/g" cloudbuild.yaml

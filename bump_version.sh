@@ -1,6 +1,13 @@
 #!/bin/sh
 
 profile=${1}
+ENV=${2:-test}
 
-bin/versionbump patch repo2docker/buildpacks/profiles/${profile}/VERSION
-git add repo2docker/buildpacks/profiles/${profile}/VERSION
+if [ "$ENV" == "test" ]
+then
+    bin/versionbump patch repo2docker/buildpacks/profiles/${profile}/TEST-VERSION
+    git add repo2docker/buildpacks/profiles/${profile}/TEST-VERSION
+else
+    bin/versionbump patch repo2docker/buildpacks/profiles/${profile}/VERSION
+    git add repo2docker/buildpacks/profiles/${profile}/VERSION
+fi
