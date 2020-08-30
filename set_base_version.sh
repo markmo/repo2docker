@@ -1,28 +1,39 @@
 #!/usr/bin/env bash
 
-PROFILE=${1}
-ENV=${2}
-PROJECT="apt-phenomenon-243802"
-if [ "${PROFILE}" == "" ] || [ "${PROFILE}" == "default" ]
+profile=${1}
+env=${2}
+
+project="apt-phenomenon-243802"
+
+if [ "${profile}" == "default" ]
 then
-    path="default"
     name=""
 else
-    path="${PROFILE}"
-    name="${PROFILE}-"
+    name="${profile}-"
 fi
-if [ "${ENV}" == "test" ]
+
+if [ "$env" == "dev" ]
 then
-    SUFFIX="-test"
-    VERSION=$(cat ../repo2docker-base/profiles/${path}/TEST-VERSION)
+    registry="localhost:5000"
+    suffix=""
+    version=$(cat ../repo2docker-base/profiles/${profile}/DEV-VERSION)
+elif [ "${env}" == "test" ]
+then
+    registry="gcr\.io\/${project}"
+    suffix="-test"
+    version=$(cat ../repo2docker-base/profiles/${profile}/TEST-VERSION)
 else
-    SUFFIX=""
-    VERSION=$(cat ../repo2docker-base/profiles/${path}/VERSION)
+    registry="gcr\.io\/${project}"
+    suffix=""
+    version=$(cat ../repo2docker-base/profiles/${profile}/VERSION)
 fi
-if [ "$VERSION" == "" ]
+
+if [ "$version" == "" ]
 then
     echo "Error"
     exit 1
 fi
-cp repo2docker/buildpacks/profiles/${PROFILE}/base.py repo2docker/buildpacks/base.py
-sed -i -E "s/(FROM gcr\.io\/${PROJECT}\/repo2docker-).*:(latest|[0-9]+\.[0-9]+\.[0-9]+)/\1${name}base${SUFFIX}:${VERSION}/" repo2docker/buildpacks/base.py
+
+cp repo2docker/buildpacks/profiles/${profile}/base.py repo2docker/buildpacks/base.py
+
+sed -i -E "s/(FROM )(gcr\.io\/${project}|localhost:5000)(\/repo2docker-).*:(latest|[0-9]+\.[0-9]+\.[0-9]+)/\1${registry}\3${name}base${suffix}:${version}/" repo2docker/buildpacks/base.py

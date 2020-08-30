@@ -1,25 +1,35 @@
 #!/usr/bin/env bash
 
-PROFILE=${1}
-ENV=${2}
-if [ "${PROFILE}" == "" ] || [ "${PROFILE}" == "default" ]
+profile=${1}
+env=${2}
+
+if [ "${profile}" == "default" ]
 then
-    NAME=""
+    name=""
 else
-    NAME="-${PROFILE}"
+    name="-${profile}"
 fi
-if [ "${ENV}" == "test" ]
+
+if [ "${env}" == "dev" ]
 then
-    SUFFIX="-test"
-    VERSION=$(cat repo2docker/buildpacks/profiles/${PROFILE}/TEST-VERSION)
+    registry="localhost:5000"
+    suffix=""
+    version=$(cat repo2docker/buildpacks/profiles/${profile}/DEV-VERSION)
+elif [ "${env}" == "test" ]
+then
+    registry="gcr\.io\/\\\$PROJECT_ID"
+    suffix="-test"
+    version=$(cat repo2docker/buildpacks/profiles/${profile}/TEST-VERSION)
 else
-    SUFFIX=""
-    VERSION=$(cat repo2docker/buildpacks/profiles/${PROFILE}/VERSION)
+    registry="gcr\.io\/\\\$PROJECT_ID"
+    suffix=""
+    version=$(cat repo2docker/buildpacks/profiles/${profile}/VERSION)
 fi
-if [ "$VERSION" == "" ]
+
+if [ "$version" == "" ]
 then
     echo "Error"
     exit 1
 fi
 
-sed -i -E "s/(gcr\.io\/\\\$PROJECT_ID\/repo2docker).*:(latest|[0-9]+\.[0-9]+\.[0-9]+)/\1${NAME}${SUFFIX}:${VERSION}/g" cloudbuild.yaml
+sed -i -E "s/(gcr\.io\/\\\$PROJECT_ID|localhost:5000)(\/repo2docker).*:(latest|[0-9]+\.[0-9]+\.[0-9]+)/${registry}\2${name}${suffix}:${version}/" cloudbuild.yaml

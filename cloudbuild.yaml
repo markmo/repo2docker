@@ -18,7 +18,7 @@ steps:
   args:
   - 'build'
   - '-t'
-  - 'gcr.io/$PROJECT_ID/repo2docker-codeserver:0.0.1'
+  - '${_TAG}'
   - '.'
 
 # This step pushes the image to Container Registry
@@ -29,7 +29,10 @@ steps:
   id: Push
   args:
   - 'push'
-  - 'gcr.io/$PROJECT_ID/repo2docker-codeserver:0.0.1'
+  - '${_TAG}'
 
-  timeout: 1800s # 30 min
+substitutions:
+  _TAG: localhost:5000/repo2docker-codeserver:0.0.1
+
+timeout: 1800s # 30 min
 # [END cloudbuild]
