@@ -32,7 +32,7 @@ steps:
   - '${_TAG}'
 
 substitutions:
-  _TAG: localhost:5000/repo2docker-codeserver:0.0.1
+  _TAG: gcr.io/$PROJECT_ID/repo2docker-codeserver:0.0.2
 
 timeout: 1800s # 30 min
 # [END cloudbuild]

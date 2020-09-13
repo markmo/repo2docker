@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 from traitlets import Dict
 
 TEMPLATE = r"""
-FROM localhost:5000/repo2docker-codeserver-base:0.0.6
+FROM gcr.io/apt-phenomenon-243802/repo2docker-codeserver-base:0.0.2
 
 USER root
 
