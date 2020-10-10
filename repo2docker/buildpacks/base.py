@@ -14,13 +14,32 @@ import xml.etree.ElementTree as ET
 from traitlets import Dict
 
 TEMPLATE = r"""
-FROM gcr.io/apt-phenomenon-243802/repo2docker-codeserver-base:0.0.2
+# FROM buildpack-deps:bionic
+
+# # avoid prompts from apt
+# ENV DEBIAN_FRONTEND=noninteractive
+
+# # Set up locales properly
+# RUN apt-get -qq update && \
+#     apt-get -qq install --yes --no-install-recommends locales git rsync curl vim > /dev/null && \
+#     apt-get -qq purge && \
+#     apt-get -qq clean && \
+#     rm -rf /var/lib/apt/lists/*
+
+# RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+#     locale-gen
+FROM gcr.io/apt-phenomenon-243802/repo2docker-garden-base:0.0.1
 
 USER root
 
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
+
+# # Install kubectl
+# RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.10/bin/linux/amd64/kubectl && \
+#     chmod +x ./kubectl && \
+#     mv ./kubectl /usr/local/bin/kubectl
 
 # Set up user
 ARG NB_USER
@@ -29,7 +48,26 @@ ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
 # Use bash as default shell, rather than sh
-ENV SHELL /bin/bash
+RUN chsh -s /bin/rbash ${NB_USER}
+# RUN chattr +i /home/${NB_USER}/.bashrc
+# ENV SHELL /bin/rbash
+
+# RUN groupadd \
+#         --gid ${NB_UID} \
+#         ${NB_USER} && \
+#     useradd \
+#         --comment "Default user" \
+#         --create-home \
+#         --gid ${NB_UID} \
+#         --no-log-init \
+#         --shell /bin/bash \
+#         --uid ${NB_UID} \
+#         ${NB_USER}
+
+# RUN wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key |  apt-key add - && \
+#     DISTRO="bionic" && \
+#     echo "deb https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list && \
+#     echo "deb-src https://deb.nodesource.com/node_10.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
 
 # Base package installs are not super interesting to users, so hide their outputs
 # If install fails for some reason, errors will still be printed
@@ -56,6 +94,14 @@ RUN apt-get -qq update && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
 {% endif -%}
+
+# # tool to watch for file changes
+# RUN apt-get -qq update && \
+#     apt-get -qq install --yes inotify-tools \
+#     > /dev/null && \
+#     apt-get -qq purge && \
+#     apt-get -qq clean && \
+#     rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8888
 
@@ -145,9 +191,37 @@ RUN chown -R ${NB_USER}:${NB_USER} ${REPO_DIR} && \
 LABEL {{k}}="{{v}}"
 {%- endfor %}
 
+# # Add Jupyter Notebook config
+# COPY /jupyter_notebook_config.py /home/$NB_USER/.jupyter/jupyter_notebook_config.py
+
+# # Install autocommit service
+# COPY /autocommit.sh /home/$NB_USER/autocommit.sh
+# RUN mkdir -p /home/$NB_USER/.config/systemd/user
+# COPY /autocommit.service /home/$NB_USER/.config/systemd/user/autocommit.service
+# # RUN chmod 644 /home/$NB_USER/.config/systemd/user/autocommit.service
+
+# # Add scripts
+# COPY /fetch.sh /home/$NB_USER/fetch.sh
+# COPY /merge.sh /home/$NB_USER/merge.sh
+
+# # Install Europa
+# COPY /europa/ /home/$NB_USER/europa/
+# RUN python3 -m pip install Flask flask-cors gevent gevent-ws
+# COPY /europa.service /home/$NB_USER/.config/systemd/user/europa.service
+
+# # Install Theia
+# RUN npm install -g yarn
+# COPY /package.json /home/$NB_USER/package.json
+
+# WORKDIR /home/$NB_USER
+# # Next version of theia-full does not build https://github.com/theia-ide/theia-apps/issues/371
+# RUN yarn install --network-timeout 100000 && \
+#     yarn theia build
+# ENV PATH "/home/$NB_USER/node_modules/.bin:${PATH}"
+
 # RUN pip install jupyter-server-proxy
-# COPY /garden.yml /home/$NB_USER/garden.yml
-# RUN chown $NB_USER:$NB_USER /home/$NB_USER/garden.yml
+COPY /garden.yml /home/$NB_USER/garden.yml
+RUN chown $NB_USER:$NB_USER /home/$NB_USER/garden.yml
 
 # We always want containers to run as non-root
 USER ${NB_USER}
@@ -173,12 +247,32 @@ ENV R2D_ENTRYPOINT "{{ start_script }}"
 # {% endfor -%}
 # {% endif -%}
 
-# TODO move to base to speed up build ###
-# Install Elyra
-# RUN python3 -m pip install --upgrade elyra && jupyter lab build
+# # Install GCloud
+# # TODO
+# COPY /apt-phenomenon-243802-bbe918a2d411.json /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
 
-# RUN jupyter labextension install jupyterlab-drawio
-#########################################
+# ENV GCLOUD_SERVICE_KEY /home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json
+# ENV GOOGLE_PROJECT_ID apt-phenomenon-243802
+# ENV GOOGLE_COMPUTE_ZONE us-central1-b
+
+# RUN mkdir /home/$NB_USER/gcloud && \
+#     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar xvz -C /home/$NB_USER/gcloud && \
+#     /home/$NB_USER/gcloud/google-cloud-sdk/install.sh --quiet && \
+#     /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud auth activate-service-account notebook-container@apt-phenomenon-243802.iam.gserviceaccount.com --key-file=/home/$NB_USER/apt-phenomenon-243802-bbe918a2d411.json --project=apt-phenomenon-243802 && \
+#     # shows warning for unknown reason
+#     /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set project apt-phenomenon-243802 && \
+#     /home/jovyan/gcloud/google-cloud-sdk/bin/gcloud config set compute/zone us-central1-b
+
+# # Install Garden
+# RUN curl -sL https://get.garden.io/install.sh | bash
+
+# RUN echo 'export PATH=$HOME/gcloud/google-cloud-sdk/bin:$HOME/.garden/bin:$PATH' >> /home/$NB_USER/.bashrc
+
+# COPY /kubeconfig.yml /home/$NB_USER/.kube/config
+
+# COPY /create_kube_account.sh /home/$NB_USER/create_kube_account.sh
+
+# COPY /garden.yml /home/$NB_USER/garden.yml
 
 ENV GARDEN_SERVER_PORT 9777
 ENV GARDEN_DISABLE_ANALYTICS true
@@ -194,7 +288,15 @@ RUN git config --global user.name "europanb"
 
 ARG GIT_BRANCH
 ENV GIT_BRANCH ${GIT_BRANCH}
-ENV ELYRA_METADATA_PATH ${REPO_DIR}/.config
+# ENV PYTHONPATH /home/${NB_USER}/europa:$PYTHONPATH
+# TODO update for prod
+# fails to connect (yet I can from within the pod)
+# 0.0.0.0:9004 failed as well
+# maybe related to insecure (http) endpoint
+# ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT localhost:9004
+# 404
+# ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT jupyterhub.europanb.online
+# ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT app.europanb.online/jupyterhub
 
 # Add entrypoint
 COPY /repo2docker-entrypoint /usr/local/bin/repo2docker-entrypoint
