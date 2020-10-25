@@ -115,5 +115,8 @@ dependencies:
   - python-language-server
   - flake8
   - autopep8
+  - scikit-learn
+  - pandas
+  - numpy
 prefix: /opt/conda/envs/r2d
 

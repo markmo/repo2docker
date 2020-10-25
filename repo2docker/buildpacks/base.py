@@ -28,7 +28,7 @@ TEMPLATE = r"""
 
 # RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
 #     locale-gen
-FROM gcr.io/apt-phenomenon-243802/repo2docker-garden-base:0.0.1
+FROM localhost:5000/repo2docker-garden-base:0.0.13
 
 USER root
 
@@ -48,9 +48,17 @@ ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
 # Use bash as default shell, rather than sh
-RUN chsh -s /bin/rbash ${NB_USER}
+
+# TODO
+# Secure setting
+# but causing `/bin/sh: 5: /etc/profile.d/activate-conda.sh: [[: not found`
+# when opening a terminal in Jupyter Lab, therefore using bash below
+# RUN chsh -s /bin/rbash ${NB_USER}
+
 # RUN chattr +i /home/${NB_USER}/.bashrc
 # ENV SHELL /bin/rbash
+
+ENV SHELL /bin/bash
 
 # RUN groupadd \
 #         --gid ${NB_UID} \
@@ -276,6 +284,8 @@ ENV R2D_ENTRYPOINT "{{ start_script }}"
 
 ENV GARDEN_SERVER_PORT 9777
 ENV GARDEN_DISABLE_ANALYTICS true
+
+RUN bentoml config set yatai_service.url=https://yatai.devsheds.io:50051
 
 WORKDIR ${REPO_DIR}
 
