@@ -28,7 +28,7 @@ TEMPLATE = r"""
 
 # RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
 #     locale-gen
-FROM gcr.io/apt-phenomenon-243802/repo2docker-garden-base:0.0.2
+FROM gcr.io/apt-phenomenon-243802/repo2docker-garden-base:0.0.3
 
 USER root
 

@@ -18,7 +18,7 @@ steps:
   args:
   - 'build'
   - '-t'
-  - 'gcr.io/$PROJECT_ID/repo2docker-garden:0.0.2'
+  - 'gcr.io/$PROJECT_ID/repo2docker-garden:0.0.3'
   - '--no-cache'
   - '.'
 
@@ -30,7 +30,7 @@ steps:
   id: Push
   args:
   - 'push'
-  - 'gcr.io/$PROJECT_ID/repo2docker-garden:0.0.2'
+  - 'gcr.io/$PROJECT_ID/repo2docker-garden:0.0.3'
 
 timeout: 1800s # 30 min
 # [END cloudbuild]
