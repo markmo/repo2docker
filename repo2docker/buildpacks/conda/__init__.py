@@ -30,14 +30,14 @@ class CondaBuildPack(BaseImage):
         the `NB_PYTHON_PREFIX` to the location of the jupyter binary.
 
         """
-        env = super().get_build_env()# + [
-        #     ("CONDA_DIR", "${APP_BASE}/conda"),
-        #     ("NB_PYTHON_PREFIX", "${CONDA_DIR}/envs/notebook"),
-        # ]
-        # if self.py2:
-        #     env.append(("KERNEL_PYTHON_PREFIX", "${CONDA_DIR}/envs/kernel"))
-        # else:
-        #     env.append(("KERNEL_PYTHON_PREFIX", "${NB_PYTHON_PREFIX}"))
+        env = super().get_build_env() + [
+            ("CONDA_DIR", "${APP_BASE}/conda"),
+            ("NB_PYTHON_PREFIX", "${CONDA_DIR}/envs/notebook"),
+        ]
+        if self.py2:
+            env.append(("KERNEL_PYTHON_PREFIX", "${CONDA_DIR}/envs/kernel"))
+        else:
+            env.append(("KERNEL_PYTHON_PREFIX", "${NB_PYTHON_PREFIX}"))
         return env
 
     def get_env(self):
@@ -51,10 +51,10 @@ class CondaBuildPack(BaseImage):
 
         """
         path = super().get_path()
-        # path.insert(0, "${CONDA_DIR}/bin")
-        # if self.py2:
-        #     path.insert(0, "${KERNEL_PYTHON_PREFIX}/bin")
-        # path.insert(0, "${NB_PYTHON_PREFIX}/bin")
+        path.insert(0, "${CONDA_DIR}/bin")
+        if self.py2:
+            path.insert(0, "${KERNEL_PYTHON_PREFIX}/bin")
+        path.insert(0, "${NB_PYTHON_PREFIX}/bin")
         return path
 
     def get_build_scripts(self):
@@ -104,7 +104,7 @@ class CondaBuildPack(BaseImage):
         """
         files = {
             # "conda/install-miniconda.bash": "/tmp/install-miniconda.bash",
-            # "conda/activate-conda.sh": "/etc/profile.d/activate-conda.sh",
+            "conda/activate-conda.sh": "/etc/profile.d/activate-conda.sh",
         }
         py_version = self.python_version
         self.log.info("Building conda environment for python=%s" % py_version)
