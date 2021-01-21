@@ -711,10 +711,10 @@ class Repo2Docker(Application):
                 picked_buildpack.labels["repo2docker.ref"] = self.ref
 
                 if self.dry_run:
-                    print(picked_buildpack.render())
+                    print(picked_buildpack.render(self.safe_mode))
                 else:
                     self.log.debug(
-                        picked_buildpack.render(), extra=dict(phase="building")
+                        picked_buildpack.render(self.safe_mode), extra=dict(phase="building")
                     )
                     if self.user_id == 0:
                         raise ValueError(
