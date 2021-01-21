@@ -124,6 +124,8 @@ c.FileContentsManager.post_save_hook = commit_changes
 # https://github.com/jupyter/notebook/issues/3130
 c.FileContentsManager.delete_to_trash = False
 
+c.ContentsManager.allow_hidden = True
+
 # Set the log level by value or name.
 c.JupyterHub.log_level = 'DEBUG'
 

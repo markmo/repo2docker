@@ -369,6 +369,14 @@ class Repo2Docker(Application):
         config=True,
     )
 
+    safe_mode = Bool(
+        False,
+        help="""
+        Set to true to build project without custom dependencies
+        """,
+        config=True,
+    )
+
     def fetch(self, url, ref, checkout_path):
         """Fetch the contents of `url` and place it in `checkout_path`.
 
@@ -736,6 +744,7 @@ class Repo2Docker(Application):
                         build_args,
                         self.cache_from,
                         self.extra_build_kwargs,
+                        self.safe_mode,
                     ):
                         if "stream" in l:
                             self.log.info(l["stream"], extra=dict(phase="building"))

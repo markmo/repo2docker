@@ -670,6 +670,7 @@ class BuildPack:
         build_args,
         cache_from,
         extra_build_kwargs,
+        safe_mode,
     ):
         tarf = io.BytesIO()
         tar = tarfile.open(fileobj=tarf, mode="w")

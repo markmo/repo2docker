@@ -28,7 +28,7 @@ TEMPLATE = r"""
 
 # RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
 #     locale-gen
-FROM gcr.io/apt-phenomenon-243802/repo2docker-garden-base:0.0.6
+FROM localhost:5000/repo2docker-garden-base:0.0.25
 
 USER root
 
@@ -185,6 +185,10 @@ COPY src/ ${REPO_DIR}
 RUN chown -R ${NB_USER}:${NB_USER} ${REPO_DIR} && \
     mkdir -p /home/$NB_USER/.jupyter && \
     chown -R ${NB_USER}:${NB_USER} /home/$NB_USER/.jupyter
+
+## TODO causing "chown: changing ownership of '/home/jovyan/garden.yml': Operation not permitted"
+# COPY /garden.yml /home/$NB_USER/garden.yml
+# RUN chown $NB_USER:$NB_USER /home/$NB_USER/garden.yml
 
 # Run assemble scripts! These will actually turn the specification
 # in the repository into an image.
@@ -680,7 +684,7 @@ class BuildPack:
     def detect(self):
         return True
 
-    def render(self):
+    def render(self, safe_mode):
         """
         Render BuildPack into Dockerfile
         """
@@ -722,10 +726,13 @@ class BuildPack:
         #      ('assemble_files/<escaped-file-path-truncated>-<6-chars-of-its-hash>')
         #   2. Location of the aforemention script in the Docker image
         # Base template basically does: COPY <1.> <2.>
-        build_script_files = {
-            self.generate_build_context_filename(k)[0]: v
-            for k, v in self.get_build_script_files().items()
-        }
+        if safe_mode:
+            build_script_files = {}
+        else:
+            build_script_files = {
+                self.generate_build_context_filename(k)[0]: v
+                for k, v in self.get_build_script_files().items()
+            }
 
         return t.render(
             packages=sorted(self.get_packages()),
@@ -782,11 +789,12 @@ class BuildPack:
         build_args,
         cache_from,
         extra_build_kwargs,
+        safe_mode,
     ):
         tarf = io.BytesIO()
         tar = tarfile.open(fileobj=tarf, mode="w")
         dockerfile_tarinfo = tarfile.TarInfo("Dockerfile")
-        dockerfile = self.render().encode("utf-8")
+        dockerfile = self.render(safe_mode).encode("utf-8")
         dockerfile_tarinfo.size = len(dockerfile)
 
         tar.addfile(dockerfile_tarinfo, io.BytesIO(dockerfile))

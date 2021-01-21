@@ -28,6 +28,7 @@ class DockerBuildPack(BuildPack):
         build_args,
         cache_from,
         extra_build_kwargs,
+        safe_mode,
     ):
         """Build a Docker image based on the Dockerfile in the source repo."""
         # If you work on this bit of code check the corresponding code in

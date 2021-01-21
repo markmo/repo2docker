@@ -192,6 +192,13 @@ def get_argparser():
         "--cache-from", action="append", default=[], help=Repo2Docker.cache_from.help
     )
 
+    argparser.add_argument(
+        "--safe-mode",
+        default=False,
+        action="store_true",
+        help="Build without installing custom dependencies"
+    )
+
     return argparser
 
 
@@ -337,6 +344,8 @@ def make_r2d(argv=None):
 
     if args.target_repo_dir:
         r2d.target_repo_dir = args.target_repo_dir
+    
+    r2d.safe_mode = args.safe_mode
 
     return r2d
 
