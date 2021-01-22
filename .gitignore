@@ -37,3 +37,4 @@ test_file_text.txt
 tests/dockerfile_diff.sh
 apt-phenomenon-243802-bbe918a2d411.json
 apt-phenomenon-243802-bbe918a2d411.json.enc
+kubeconfig.yml
