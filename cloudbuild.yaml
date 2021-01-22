@@ -18,7 +18,7 @@ steps:
   args:
   - 'build'
   - '-t'
-  - 'localhost:5000/repo2docker-garden:0.0.20'
+  - 'localhost:5000/repo2docker-garden:0.0.21'
   - '--no-cache'
   - '.'
 
@@ -30,7 +30,7 @@ steps:
   id: Push
   args:
   - 'push'
-  - 'localhost:5000/repo2docker-garden:0.0.20'
+  - 'localhost:5000/repo2docker-garden:0.0.21'
 
 timeout: 1800s # 30 min
 # [END cloudbuild]
